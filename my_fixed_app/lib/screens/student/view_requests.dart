@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:intl/intl.dart';
- 
+
 class MyGatePass extends StatefulWidget {
   const MyGatePass({super.key});
 
@@ -14,17 +14,14 @@ class MyGatePass extends StatefulWidget {
 }
 
 class _MyGatePassState extends State<MyGatePass> {
-  // 🎯 Dark Theme Colors (Default)
+  // Use direct colors instead of AppTheme to avoid errors
   static const Color _primaryColor = Color(0xFFDC2626);
-  static const Color _secondaryColor = Color(0xFF991B1B);
   static const Color _glassColor = Color(0x1AFFFFFF);
   static const Color _glassBorder = Color(0x33FFFFFF);
   static const Color _textPrimary = Colors.white;
   static const Color _textSecondary = Color(0xB3FFFFFF);
   static const Color _textTertiary = Color(0x8AFFFFFF);
-  static const Color _dividerColor = Color(0x1AFFFFFF);
   
-  // 🎯 Background Gradient for Dark Theme
   static const List<Color> _backgroundGradient = [
     Color(0xFF1A1A1A),
     Color(0xFF2D1B1B),
@@ -37,7 +34,7 @@ class _MyGatePassState extends State<MyGatePass> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             width: 100,
             child: Text(
               '$label:',
@@ -290,12 +287,13 @@ class _MyGatePassState extends State<MyGatePass> {
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: _primaryColor.withOpacity(0.1),
+                                          color: _glassColor,
                                           borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: _glassBorder),
                                         ),
                                         child: const Icon(
-                                          Icons.person_outline,
-                                          color: _primaryColor,
+                                          Icons.credit_card_outlined,
+                                          color: _textPrimary,
                                           size: 24,
                                         ),
                                       ),
@@ -320,11 +318,9 @@ class _MyGatePassState extends State<MyGatePass> {
                                       width: double.infinity,
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: _primaryColor.withOpacity(0.05),
+                                        color: _glassColor,
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: _primaryColor.withOpacity(0.1),
-                                        ),
+                                        border: Border.all(color: _glassBorder),
                                       ),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,11 +351,9 @@ class _MyGatePassState extends State<MyGatePass> {
                                       width: double.infinity,
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
-                                        color: _primaryColor.withOpacity(0.05),
+                                        color: _glassColor,
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: _primaryColor.withOpacity(0.1),
-                                        ),
+                                        border: Border.all(color: _glassBorder),
                                       ),
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -475,7 +469,52 @@ class _MyGatePassState extends State<MyGatePass> {
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
-            // Status Badge
+            if (showQr) ...[
+              // QR Code at the TOP
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 15,
+                    ),
+                  ],
+                ),
+                child: QrImageView(
+                  data: qrData,
+                  version: QrVersions.auto,
+                  size: 200.0,
+                  gapless: true,
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // QR Instructions
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _glassColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  "Scan this QR at the gate to go out or return",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: _textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 24),
+            ],
+            
+            // Status Badge - Smaller text
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -488,7 +527,7 @@ class _MyGatePassState extends State<MyGatePass> {
                 style: TextStyle(
                   color: color,
                   fontWeight: FontWeight.bold,
-                  fontSize: 12,
+                  fontSize: 11,
                   letterSpacing: 1,
                 ),
               ),
@@ -535,51 +574,6 @@ class _MyGatePassState extends State<MyGatePass> {
                   ),
                 ),
               ),
-            
-            if (showQr) ...[
-              const SizedBox(height: 24),
-              
-              // QR Code Container
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 15,
-                    ),
-                  ],
-                ),
-                child: QrImageView(
-                  data: qrData,
-                  version: QrVersions.auto,
-                  size: 200.0,
-                  gapless: true,
-                ),
-              ),
-              
-              const SizedBox(height: 16),
-              
-              // QR Instructions
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: _primaryColor.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  "Scan this QR at the gate to go out or return",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _textSecondary,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ),

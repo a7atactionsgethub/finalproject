@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  static bool _isDarkMode = true; // 🎯 Dark theme default
+  static bool _isDarkMode = true;
 
   static bool get isDarkMode => _isDarkMode;
   
@@ -11,8 +11,6 @@ class AppTheme {
   }
 
   // ========== COLOR SYSTEM ==========
-  
-  // 🎯 Core Colors
   static Color get primaryColor => _isDarkMode ? const Color(0xFFDC2626) : const Color(0xFF0AD5FF);
   static Color get secondaryColor => _isDarkMode ? const Color(0xFF991B1B) : const Color(0xFF0099CC);
   static Color get glassColor => _isDarkMode ? const Color(0x1AFFFFFF) : const Color(0x0A000000);
@@ -22,12 +20,12 @@ class AppTheme {
   static Color get textTertiary => _isDarkMode ? const Color(0x8AFFFFFF) : const Color(0x66000000);
   static Color get dividerColor => _isDarkMode ? const Color(0x1AFFFFFF) : const Color(0x1A000000);
   
-  // 🎯 Background Gradients
+  // Background Gradients
   static List<Color> get backgroundGradient => _isDarkMode 
       ? const [Color(0xFF1A1A1A), Color(0xFF2D1B1B), Color(0xFF1A1A1A)]
       : const [Color(0xFFF8F9FA), Color(0xFFE3F2FD), Color(0xFFF8F9FA)];
 
-  // 🎯 Status Colors
+  // Status Colors
   static Color get statusApproved => _isDarkMode ? Colors.green : Colors.green.shade600;
   static Color get statusOut => _isDarkMode ? Colors.orange : Colors.orange.shade600;
   static Color get statusExpired => _isDarkMode ? Colors.grey : Colors.grey.shade600;
@@ -35,7 +33,6 @@ class AppTheme {
   static Color get statusPending => _isDarkMode ? Colors.blue : Colors.blue.shade600;
 }
 
-// ========== TEXT STYLES ==========
 class AppTextStyles {
   // Header Styles
   static const TextStyle headerLarge = TextStyle(
@@ -90,7 +87,6 @@ class AppTextStyles {
   );
 }
 
-// ========== DECORATIONS ==========
 class AppDecorations {
   // Glass Morphism Container
   static BoxDecoration glassContainer({
@@ -198,7 +194,6 @@ class AppDecorations {
   }
 }
 
-// ========== SPACING SYSTEM ==========
 class AppSpacing {
   static const double screenPadding = 24.0;
   static const double cardPadding = 20.0;
@@ -216,13 +211,8 @@ class AppSpacing {
   // Container Sizes
   static const double loadingSize = 60.0;
   static const double qrSize = 200.0;
-  
-  // Button Sizes
-  static const double buttonHeight = 48.0;
-  static const double buttonBorderRadius = 16.0;
 }
 
-// ========== WIDGET BUILDER METHODS ==========
 class AppWidgetStyles {
   // Back Button Style
   static Widget backButton(BuildContext context, {VoidCallback? onPressed}) {
@@ -246,7 +236,7 @@ class AppWidgetStyles {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             width: expandLabel ? 100 : null,
             child: Text(
               '$label:',
@@ -336,171 +326,6 @@ class AppWidgetStyles {
           style: AppTextStyles.headerSmall.copyWith(color: AppTheme.textPrimary),
         ),
       ],
-    );
-  }
-
-  // Status Widget Builder
-  static Widget statusIndicator({
-    required String status,
-    required String message,
-    required IconData icon,
-    Color? color,
-    String subMessage = '',
-    bool showQr = false,
-    String qrData = '',
-  }) {
-    final statusColor = color ?? _getStatusColor(status);
-    
-    return Container(
-      width: double.infinity,
-      decoration: AppDecorations.glassContainer(),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.cardPadding),
-        child: Column(
-          children: [
-            // Status Badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: AppDecorations.statusBadgeContainer(statusColor),
-              child: Text(
-                status.toUpperCase(),
-                style: AppTextStyles.statusBadge.copyWith(color: statusColor),
-              ),
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Icon
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.elementSpacing),
-              decoration: AppDecorations.statusIconContainer(statusColor),
-              child: Icon(icon, color: statusColor, size: AppSpacing.iconSizeLarge),
-            ),
-            
-            const SizedBox(height: AppSpacing.elementSpacing),
-            
-            // Message
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.headerMedium.copyWith(color: AppTheme.textPrimary),
-            ),
-            
-            if (subMessage.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.tinySpacing),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Text(
-                  subMessage,
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.labelSmall.copyWith(color: AppTheme.textSecondary),
-                ),
-              ),
-            ],
-            
-            if (showQr && qrData.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.sectionSpacing),
-              _buildQrSection(qrData),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Helper method for status colors
-  static Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'approved':
-        return AppTheme.statusApproved;
-      case 'out':
-        return AppTheme.statusOut;
-      case 'expired':
-      case 'used':
-        return AppTheme.statusExpired;
-      case 'rejected':
-        return AppTheme.statusRejected;
-      case 'pending':
-        return AppTheme.statusPending;
-      default:
-        return AppTheme.primaryColor;
-    }
-  }
-
-  // QR Section Builder
-  static Widget _buildQrSection(String qrData) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.cardPadding),
-          decoration: AppDecorations.qrContainer(),
-          child: QrImageView(
-            data: qrData,
-            version: QrVersions.auto,
-            size: AppSpacing.qrSize,
-            gapless: true,
-          ),
-        ),
-        
-        const SizedBox(height: AppSpacing.elementSpacing),
-        
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.smallSpacing),
-          decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            "Scan this QR at the gate to go out or return",
-            textAlign: TextAlign.center,
-            style: AppTextStyles.labelTertiary.copyWith(color: AppTheme.textSecondary),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ========== THEME DATA FOR MATERIAL APP ==========
-class AppThemeData {
-  static ThemeData get themeData {
-    return ThemeData(
-      brightness: AppTheme.isDarkMode ? Brightness.dark : Brightness.light,
-      primaryColor: AppTheme.primaryColor,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppTheme.primaryColor,
-        brightness: AppTheme.isDarkMode ? Brightness.dark : Brightness.light,
-        primary: AppTheme.primaryColor,
-        secondary: AppTheme.secondaryColor,
-      ),
-      scaffoldBackgroundColor: Colors.transparent,
-      appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: IconThemeData(color: AppTheme.textPrimary),
-        titleTextStyle: AppTextStyles.headerLarge.copyWith(color: AppTheme.textPrimary),
-      ),
-      textTheme: TextTheme(
-        displayLarge: AppTextStyles.headerLarge.copyWith(color: AppTheme.textPrimary),
-        displayMedium: AppTextStyles.headerMedium.copyWith(color: AppTheme.textPrimary),
-        displaySmall: AppTextStyles.headerSmall.copyWith(color: AppTheme.textPrimary),
-        bodyLarge: AppTextStyles.bodyLarge.copyWith(color: AppTheme.textPrimary),
-        bodyMedium: AppTextStyles.bodyMedium.copyWith(color: AppTheme.textPrimary),
-        bodySmall: AppTextStyles.bodySmall.copyWith(color: AppTheme.textPrimary),
-        labelLarge: AppTextStyles.labelMedium.copyWith(color: AppTheme.textPrimary),
-        labelMedium: AppTextStyles.labelSmall.copyWith(color: AppTheme.textPrimary),
-        labelSmall: AppTextStyles.labelTertiary.copyWith(color: AppTheme.textPrimary),
-      ),
-      iconTheme: IconThemeData(color: AppTheme.textPrimary),
-      dividerColor: AppTheme.dividerColor,
-      cardTheme: CardTheme(
-        color: AppTheme.glassColor,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: AppTheme.glassBorder),
-        ),
-      ),
     );
   }
 }

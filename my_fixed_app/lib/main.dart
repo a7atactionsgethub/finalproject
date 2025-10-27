@@ -61,7 +61,7 @@ Future<void> _saveFcmTokenForCurrentUser() async {
     }
 
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-      if (newToken != null && newToken.isNotEmpty) {
+      if (newToken.isNotEmpty) {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)

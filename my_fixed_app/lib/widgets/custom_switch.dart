@@ -8,13 +8,13 @@ class CustomSwitch extends StatelessWidget {
   final Color textTertiary;
 
   const CustomSwitch({
-    Key? key,
+    super.key,
     required this.value,
     required this.onChanged,
     required this.primaryColor,
     required this.secondaryColor,
     required this.textTertiary,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

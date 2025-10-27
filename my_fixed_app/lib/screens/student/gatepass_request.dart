@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class GatePassRequest extends StatefulWidget {
   const GatePassRequest({super.key});
@@ -244,8 +243,7 @@ class _GatePassRequestState extends State<GatePassRequest> {
               onPrimary: Colors.white,
               surface: const Color(0xFF1A1A1A),
               onSurface: Colors.white,
-            ),
-            dialogBackgroundColor: const Color(0xFF2D1B1B),
+            ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF2D1B1B)),
           ),
           child: child!,
         );
@@ -264,8 +262,7 @@ class _GatePassRequestState extends State<GatePassRequest> {
               onPrimary: Colors.white,
               surface: const Color(0xFF1A1A1A),
               onSurface: Colors.white,
-            ),
-            dialogBackgroundColor: const Color(0xFF2D1B1B),
+            ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF2D1B1B)),
           ),
           child: child!,
         );

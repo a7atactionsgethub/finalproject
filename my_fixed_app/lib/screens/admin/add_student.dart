@@ -1,3 +1,4 @@
+
 // lib/screens/admin/add_student.dart
 import 'dart:async';
 import 'dart:io';
@@ -604,7 +605,7 @@ class _AddStudentPageState extends State<AddStudentPage> {
                             ],
                           ),
                           child: DropdownButtonFormField<String>(
-                            value: _departmentController.text.isEmpty ? null : _departmentController.text,
+                            initialValue: _departmentController.text.isEmpty ? null : _departmentController.text,
                             dropdownColor: const Color(0xFF2A1A1A),
                             style: const TextStyle(color: Colors.white),
                             items: [
@@ -688,7 +689,7 @@ class _AddStudentPageState extends State<AddStudentPage> {
                             ],
                           ),
                           child: DropdownButtonFormField<String>(
-                            value: _selectedGender,
+                            initialValue: _selectedGender,
                             dropdownColor: const Color(0xFF2A1A1A),
                             style: const TextStyle(color: Colors.white),
                             items: ['Male', 'Female', 'Other']

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class HistoryFilterWidget extends StatefulWidget {
   final Function(int year, String month, String letter) onFilterChanged;
@@ -10,14 +9,14 @@ class HistoryFilterWidget extends StatefulWidget {
   final Color glassBorder;
 
   const HistoryFilterWidget({
-    Key? key,
+    super.key,
     required this.onFilterChanged,
     required this.initialYear,
     required this.initialMonth,
     required this.initialLetter,
     required this.glassWhite,
     required this.glassBorder,
-  }) : super(key: key);
+  });
 
   @override
   _HistoryFilterWidgetState createState() => _HistoryFilterWidgetState();
