@@ -1,50 +1,102 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'view_history_page.dart';
+import '../themes/app_theme.dart'; // Add this import
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Listen to theme changes
+    AppTheme.addListener(_onThemeChanged);
+  }
+
+  @override
+  void dispose() {
+    // Clean up listener
+    AppTheme.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() {
+    // Rebuild when AppTheme changes
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1A1A1A),
-              Color(0xFF2D1B1B),
-              Color(0xFF1A1A1A),
-            ],
-          ),
-        ),
+        decoration: AppDecorations.backgroundDecoration(), // ✅ Use AppTheme background
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Theme Test Button (Temporary - remove after testing)
+            Padding(
+              padding: const EdgeInsets.only(top: 60),
+              child: Column(
+                children: [
+                  Text(
+                    'Theme Test - Current: ${AppTheme.isDarkMode ? "DARK" : "LIGHT"}',
+                    style: TextStyle(
+                      color: AppTheme.textPrimary, // ✅ Use AppTheme color
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          print('🎯 Forcing DARK mode');
+                          AppTheme.isDarkMode = true;
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                        ),
+                        child: const Text('Force Dark', style: TextStyle(color: Colors.white)),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          print('🎯 Forcing LIGHT mode');
+                          AppTheme.isDarkMode = false;
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                        ),
+                        child: const Text('Force Light', style: TextStyle(color: Colors.black)),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
             // App Bar with Three dots button
             Padding(
               padding: const EdgeInsets.only(top: 40, right: 16),
               child: Align(
                 alignment: Alignment.topRight,
                 child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.1),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+                  decoration: AppDecorations.glassContainer( // ✅ Use AppTheme glass
+                    borderRadius: 30,
                   ),
                   child: PopupMenuButton<String>(
                     icon: Icon(
                       Icons.more_vert,
-                      color: Colors.white70,
+                      color: AppTheme.textSecondary, // ✅ Use AppTheme color
                     ),
                     onSelected: (String value) {
                       if (value == 'View History') {
@@ -60,13 +112,13 @@ class SplashScreen extends StatelessWidget {
                         child: Text(
                           'View History',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppTheme.textPrimary, // ✅ Use AppTheme color
                             fontSize: 16,
                           ),
                         ),
                       ),
                     ],
-                    color: const Color(0xFF2A1A1A),
+                    color: AppTheme.isDarkMode ? const Color(0xFF2A1A1A) : Colors.white,
                   ),
                 ),
               ),
@@ -84,17 +136,17 @@ class SplashScreen extends StatelessWidget {
                         'ROCKBOYS',
                         style: TextStyle(
                           fontFamily: 'Poppins',
-                          color: Colors.white,
+                          color: AppTheme.textPrimary, // ✅ Use AppTheme color
                           fontSize: 42,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 2.0,
-                          shadows: [
+                          shadows: AppTheme.isDarkMode ? [
                             Shadow(
                               color: Colors.black.withOpacity(0.5),
                               blurRadius: 10,
                               offset: const Offset(2, 2),
                             ),
-                          ],
+                          ] : null,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -102,7 +154,7 @@ class SplashScreen extends StatelessWidget {
                         'HOSTEL MANAGEMENT',
                         style: TextStyle(
                           fontFamily: 'Inter',
-                          color: Colors.white70,
+                          color: AppTheme.textSecondary, // ✅ Use AppTheme color
                           fontSize: 16,
                           fontWeight: FontWeight.w300,
                           letterSpacing: 3.0,
@@ -114,20 +166,8 @@ class SplashScreen extends StatelessWidget {
                       Container(
                         width: 220,
                         height: 56,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFDC2626), Color(0xFF991B1B)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFDC2626).withOpacity(0.4),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
+                        decoration: AppDecorations.buttonDecoration( // ✅ Use AppTheme button
+                          borderRadius: 30,
                         ),
                         child: ElevatedButton(
                           onPressed: () => context.go('/signin'),
@@ -139,14 +179,11 @@ class SplashScreen extends StatelessWidget {
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                           ),
-                          child: const Text(
+                          child: Text(
                             'GET STARTED',
-                            style: TextStyle(
+                            style: AppTextStyles.buttonText.copyWith( // ✅ Use AppTheme text style
                               fontFamily: 'Poppins',
-                              fontSize: 16,
-                              color: Colors.white,
                               letterSpacing: 1.2,
-                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -157,7 +194,7 @@ class SplashScreen extends StatelessWidget {
                         'Secure • Fast • Reliable',
                         style: TextStyle(
                           fontFamily: 'Inter',
-                          color: Colors.white54,
+                          color: AppTheme.textTertiary, // ✅ Use AppTheme color
                           fontSize: 14,
                           fontWeight: FontWeight.w400,
                           letterSpacing: 1.5,
@@ -178,7 +215,7 @@ class SplashScreen extends StatelessWidget {
                     'Gate Pass Management System',
                     style: TextStyle(
                       fontFamily: 'Inter',
-                      color: Colors.white60,
+                      color: AppTheme.textTertiary, // ✅ Use AppTheme color
                       fontSize: 12,
                       fontWeight: FontWeight.w300,
                       letterSpacing: 1.2,

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/history_filter_widget.dart';
+import '../themes/app_theme.dart';
+import '../widgets/history_filter_widget.dart'; // Keeping your existing widget
 
 class ViewHistoryScreen extends StatefulWidget {
   const ViewHistoryScreen({super.key});
@@ -12,12 +13,26 @@ class ViewHistoryScreen extends StatefulWidget {
 }
 
 class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
-  final Color _glassWhite = Colors.white.withOpacity(0.1);
-  final Color _glassBorder = Colors.white.withOpacity(0.2);
-  
+  // Default to current date
   int _selectedYear = DateTime.now().year;
   String _selectedMonth = DateFormat('MMMM').format(DateTime.now());
   String _selectedLetter = 'All';
+
+  @override
+  void initState() {
+    super.initState();
+    AppTheme.addListener(_onThemeChanged);
+  }
+
+  @override
+  void dispose() {
+    AppTheme.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() {
+    if (mounted) setState(() {});
+  }
 
   void _onFilterChanged(int year, String month, String letter) {
     setState(() {
@@ -33,90 +48,52 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1A1A1A),
-              Color(0xFF2D1B1B),
-              Color(0xFF1A1A1A),
-            ],
-          ),
-        ),
+        decoration: AppDecorations.backgroundDecoration(),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppSpacing.screenPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header with Back and Settings Icons
+                // ========== Header ==========
                 Row(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: _glassWhite,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: _glassBorder),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20,
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_back,
-                            color: Colors.white.withOpacity(0.7)),
-                        onPressed: () => context.pop(),
+                    AppWidgetStyles.backButton(context),
+                    const SizedBox(width: AppSpacing.elementSpacing),
+                    Expanded(
+                      child: Text(
+                        'Gatepass History',
+                        style: AppTextStyles.headerMedium,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    const Text(
-                      'Gatepass History',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const Spacer(),
                     // Settings Icon
                     Container(
-                      decoration: BoxDecoration(
-                        color: _glassWhite,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: _glassBorder),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20,
-                          ),
-                        ],
-                      ),
+                      decoration: AppDecorations.glassContainer(borderRadius: 16),
                       child: IconButton(
-                        icon: Icon(Icons.settings_outlined,
-                            color: Colors.white.withOpacity(0.7)),
-                        onPressed: () {
-                          context.go('/settings');
-                        },
+                        icon: Icon(Icons.settings_outlined, color: AppTheme.textSecondary),
+                        onPressed: () => context.go('/settings'),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                
+                const SizedBox(height: AppSpacing.sectionSpacing),
 
-                // Filter Widget
+                // ========== Filter Widget ==========
+                // We pass the dynamic AppTheme colors to your existing widget
                 HistoryFilterWidget(
                   onFilterChanged: _onFilterChanged,
                   initialYear: _selectedYear,
                   initialMonth: _selectedMonth,
                   initialLetter: _selectedLetter,
-                  glassWhite: _glassWhite,
-                  glassBorder: _glassBorder,
+                  glassWhite: AppTheme.glassColor,
+                  glassBorder: AppTheme.glassBorder,
                 ),
 
-                // History Content
+                const SizedBox(height: AppSpacing.elementSpacing),
+
+                // ========== History Content ==========
                 Expanded(
                   child: StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
@@ -125,15 +102,23 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return _buildLoadingState();
+                        return AppWidgetStyles.loadingWidget();
                       }
 
                       if (snapshot.hasError) {
-                        return _buildErrorCard('Error: ${snapshot.error}');
+                        return Center(
+                          child: Text(
+                            'Something went wrong', 
+                            style: AppTextStyles.bodyMedium.copyWith(color: AppTheme.statusRejected)
+                          )
+                        );
                       }
 
                       if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return _buildEmptyState(_selectedMonth, _selectedYear);
+                        return AppWidgetStyles.emptyStateWidget(
+                          title: "No Records",
+                          message: "No gatepass history found in database."
+                        );
                       }
 
                       // Filter and group data
@@ -145,17 +130,32 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
                       );
 
                       if (groupedByDate.isEmpty) {
-                        return _buildEmptyState(_selectedMonth, _selectedYear);
+                         return AppWidgetStyles.emptyStateWidget(
+                          title: "No Matches",
+                          message: "No records found for $_selectedMonth $_selectedYear with filter '$_selectedLetter'."
+                        );
                       }
 
                       final sortedDates = groupedByDate.keys.toList()
-                        ..sort((a, b) => b.compareTo(a));
+                        ..sort((a, b) {
+                          // Sort date strings safely
+                          try {
+                            final dateA = DateFormat('MMMM dd, yyyy').parse(a);
+                            final dateB = DateFormat('MMMM dd, yyyy').parse(b);
+                            return dateB.compareTo(dateA);
+                          } catch (e) {
+                            return 0;
+                          }
+                        });
 
-                      return ListView(
-                        children: sortedDates.map((date) {
+                      return ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: sortedDates.length,
+                        itemBuilder: (context, index) {
+                          final date = sortedDates[index];
                           final passes = groupedByDate[date]!;
                           return _buildDateSection(date, passes);
-                        }).toList(),
+                        },
                       );
                     },
                   ),
@@ -167,6 +167,8 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
       ),
     );
   }
+
+  // ========== Logic & Filtering ==========
 
   Map<String, List<Map<String, dynamic>>> _filterAndGroupData(
     List<QueryDocumentSnapshot<Object?>> docs,
@@ -183,32 +185,31 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
         final createdAt = _parseDateTime(data['createdAt']);
         if (createdAt == null) continue;
 
-        // Filter by selected year and month
-        if (createdAt.year != year || 
-            DateFormat('MMMM').format(createdAt) != month) {
-          continue;
-        }
+        // 1. Date Filter
+        // Check if the record matches selected Year and Month
+        if (createdAt.year != year) continue;
+        if (DateFormat('MMMM').format(createdAt) != month) continue;
 
-        final name = data['studentName'] ?? data['name'] ?? 'Unknown';
+        final name = (data['studentName'] ?? data['name'] ?? 'Unknown').toString();
         
-        // Filter by alphabet if not 'All'
+        // 2. Alphabet Filter (Fixed Logic)
         if (letter != 'All') {
-          if (name.toString().isEmpty || !name.toString().toUpperCase().startsWith(letter)) {
+          // Case insensitive check
+          if (name.isEmpty || !name.toUpperCase().startsWith(letter.toUpperCase())) {
             continue;
           }
         }
 
+        // Data Preparation
         final roll = data['rollNumber'] ?? data['roll'] ?? 'Unknown';
         final dept = data['department'] ?? data['dept'] ?? 'Unknown';
         final reason = data['reason'] ?? data['purpose'] ?? data['visitReason'] ?? 'N/A';
-
         final inTime = _formatTime(data['inTime']);
         final outTime = _formatTime(data['outTime']);
-
         final dateKey = DateFormat('MMMM dd, yyyy').format(createdAt);
 
         grouped.putIfAbsent(dateKey, () => []).add({
-          'name': name.toString(),
+          'name': name,
           'roll': roll.toString(),
           'department': dept.toString(),
           'reason': reason.toString(),
@@ -216,7 +217,7 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
           'outTime': outTime,
         });
       } catch (e) {
-        // Skip invalid documents
+        print("Error processing doc ${doc.id}: $e");
         continue;
       }
     }
@@ -224,53 +225,39 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
     return grouped;
   }
 
+  // ========== Sub-Widgets ==========
+
   Widget _buildDateSection(String date, List<Map<String, dynamic>> passes) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: _glassWhite,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _glassBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 20,
-          ),
-        ],
+      margin: const EdgeInsets.only(bottom: AppSpacing.elementSpacing),
+      decoration: AppDecorations.glassContainer(
+        borderColor: AppTheme.glassBorder,
       ),
+      clipBehavior: Clip.antiAlias, // Ensures child gradient respects border radius
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Date Header
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Color(0xFFDC2626),
-                  Color(0xFF991B1B),
-                ],
-              ),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+                colors: AppTheme.buttonGradient, // Use theme gradient
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
             ),
             child: Text(
               date,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+              style: AppTextStyles.labelMedium.copyWith(color: Colors.white),
             ),
           ),
 
           // Passes List
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.elementSpacing),
             child: Column(
               children: passes.map((pass) => _buildPassCard(pass)).toList(),
             ),
@@ -286,221 +273,133 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.05),
+        color: AppTheme.glassColor.withOpacity(0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: AppTheme.dividerColor),
       ),
       child: Column(
         children: [
-          // Name and Roll Number
+          // Name and Roll
           Row(
             children: [
-              Icon(Icons.person_outline, color: Colors.white.withOpacity(0.7), size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  pass['name'] ?? 'Unknown',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: AppDecorations.iconContainer(AppTheme.primaryColor),
+                child: Icon(Icons.person, size: 16, color: AppTheme.primaryColor),
               ),
-              Icon(Icons.badge_outlined, color: Colors.white.withOpacity(0.7), size: 16),
-              const SizedBox(width: 8),
-              Text(
-                pass['roll'] ?? 'Unknown',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.7),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      pass['name'] ?? 'Unknown',
+                      style: AppTextStyles.bodyMedium,
+                    ),
+                    Text(
+                      pass['roll'] ?? 'Unknown',
+                      style: AppTextStyles.labelSmall,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+          
+          const SizedBox(height: 12),
+          Divider(color: AppTheme.dividerColor, height: 1),
           const SizedBox(height: 12),
 
-          // Department
+          // Details Row
           Row(
             children: [
-              Icon(Icons.school_outlined, color: Colors.white.withOpacity(0.7), size: 16),
-              const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  pass['department'] ?? 'Unknown',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.7),
-                  ),
-                ),
+                child: _buildInfoColumn(Icons.school, "Dept", pass['department']),
+              ),
+              Expanded(
+                child: _buildInfoColumn(Icons.article, "Reason", pass['reason']),
               ),
             ],
           ),
+
           const SizedBox(height: 12),
 
-          // Reason
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.description_outlined, color: Colors.white.withOpacity(0.7), size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  pass['reason'] ?? 'N/A',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.7),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Time Information
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildTimeInfo('Out', pass['outTime'] ?? '—'),
-              _buildTimeInfo('In', pass['inTime'] ?? '—'),
-            ],
+          // Time Row (Glass Badge style)
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.glassColor,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildTimeInfo('OUT', pass['outTime'], AppTheme.statusOut),
+                Container(width: 1, height: 20, color: AppTheme.dividerColor),
+                _buildTimeInfo('IN', pass['inTime'], AppTheme.statusApproved),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTimeInfo(String label, String time) {
+  Widget _buildInfoColumn(IconData icon, String label, String value) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.white.withOpacity(0.54),
-          ),
+        Row(
+          children: [
+            Icon(icon, size: 12, color: AppTheme.textSecondary),
+            const SizedBox(width: 4),
+            Text(label, style: AppTextStyles.labelTertiary),
+          ],
         ),
         const SizedBox(height: 4),
         Text(
-          time,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.white,
-          ),
+          value,
+          style: AppTextStyles.bodySmall.copyWith(color: AppTheme.textPrimary),
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
   }
 
-  Widget _buildLoadingState() {
-    return Center(
-      child: Container(
-        decoration: BoxDecoration(
-          color: _glassWhite,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _glassBorder),
+  Widget _buildTimeInfo(String label, String time, Color color) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: color,
+            letterSpacing: 1,
+          ),
         ),
-        padding: const EdgeInsets.all(32),
-        child: const CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        const SizedBox(height: 4),
+        Text(
+          time,
+          style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.bold),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildErrorCard(String message) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: _glassWhite,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _glassBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 20,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: Colors.white.withOpacity(0.7),
-              size: 48,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white.withOpacity(0.7),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // ========== Helpers ==========
 
-  Widget _buildEmptyState(String month, int year) {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: _glassWhite,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _glassBorder),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 20,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.history_outlined,
-              color: Colors.white.withOpacity(0.7),
-              size: 48,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'No gatepass history',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'No gatepasses found for $month $year',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withOpacity(0.7),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Parse any date format from Firestore
   DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
     try {
       if (value is Timestamp) return value.toDate().toLocal();
       if (value is String) {
-        return DateTime.parse(value).toLocal();
+        // Try parsing ISO first
+        try {
+          return DateTime.parse(value).toLocal();
+        } catch (_) {
+          // If custom format, try that (optional)
+        }
       }
     } catch (_) {
       return null;
@@ -508,7 +407,6 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
     return null;
   }
 
-  /// Format time from Timestamp or String
   String _formatTime(dynamic value) {
     try {
       final dt = _parseDateTime(value);

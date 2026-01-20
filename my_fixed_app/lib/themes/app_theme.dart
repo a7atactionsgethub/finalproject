@@ -2,12 +2,27 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
+  // ========== THEME NOTIFICATION SYSTEM ==========
   static bool _isDarkMode = true;
-
+  static final List<VoidCallback> _listeners = [];
+  
   static bool get isDarkMode => _isDarkMode;
   
   static set isDarkMode(bool value) {
-    _isDarkMode = value;
+    if (_isDarkMode != value) {
+      _isDarkMode = value;
+      for (final listener in _listeners) {
+        listener();
+      }
+    }
+  }
+  
+  static void addListener(VoidCallback listener) {
+    _listeners.add(listener);
+  }
+  
+  static void removeListener(VoidCallback listener) {
+    _listeners.remove(listener);
   }
 
   // ========== COLOR SYSTEM ==========
@@ -19,11 +34,17 @@ class AppTheme {
   static Color get textSecondary => _isDarkMode ? const Color(0xB3FFFFFF) : const Color(0x99000000);
   static Color get textTertiary => _isDarkMode ? const Color(0x8AFFFFFF) : const Color(0x66000000);
   static Color get dividerColor => _isDarkMode ? const Color(0x1AFFFFFF) : const Color(0x1A000000);
+  static Color get hintColor => _isDarkMode ? const Color(0x66FFFFFF) : const Color(0x66000000);
   
   // Background Gradients
   static List<Color> get backgroundGradient => _isDarkMode 
       ? const [Color(0xFF1A1A1A), Color(0xFF2D1B1B), Color(0xFF1A1A1A)]
       : const [Color(0xFFF8F9FA), Color(0xFFE3F2FD), Color(0xFFF8F9FA)];
+
+  // Button Gradients
+  static List<Color> get buttonGradient => _isDarkMode 
+      ? const [Color(0xFFDC2626), Color(0xFF991B1B)]
+      : const [Color(0xFF0AD5FF), Color(0xFF0099CC)];
 
   // Status Colors
   static Color get statusApproved => _isDarkMode ? Colors.green : Colors.green.shade600;
@@ -35,55 +56,97 @@ class AppTheme {
 
 class AppTextStyles {
   // Header Styles
-  static const TextStyle headerLarge = TextStyle(
+  static TextStyle get headerLarge => TextStyle(
     fontSize: 28,
     fontWeight: FontWeight.bold,
+    color: AppTheme.textPrimary,
   );
 
-  static const TextStyle headerMedium = TextStyle(
+  static TextStyle get headerMedium => TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
+    color: AppTheme.textPrimary,
   );
 
-  static const TextStyle headerSmall = TextStyle(
+  static TextStyle get headerSmall => TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.bold,
+    color: AppTheme.textPrimary,
   );
 
   // Body Text Styles
-  static const TextStyle bodyLarge = TextStyle(
+  static TextStyle get bodyLarge => TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w500,
+    color: AppTheme.textPrimary,
   );
 
-  static const TextStyle bodyMedium = TextStyle(
+  static TextStyle get bodyMedium => TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w500,
+    color: AppTheme.textPrimary,
   );
 
-  static const TextStyle bodySmall = TextStyle(
+  static TextStyle get bodySmall => TextStyle(
     fontSize: 12,
+    color: AppTheme.textSecondary,
   );
 
   // Label Styles
-  static const TextStyle labelMedium = TextStyle(
+  static TextStyle get labelMedium => TextStyle(
     fontWeight: FontWeight.w600,
     fontSize: 14,
+    color: AppTheme.textPrimary,
   );
 
-  static const TextStyle labelSmall = TextStyle(
+  static TextStyle get labelSmall => TextStyle(
     fontSize: 14,
+    color: AppTheme.textSecondary,
   );
 
-  static const TextStyle labelTertiary = TextStyle(
+  static TextStyle get labelTertiary => TextStyle(
     fontSize: 12,
+    color: AppTheme.textTertiary,
+  );
+
+  // Button Text Styles
+  static TextStyle get buttonLarge => TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+  );
+
+  static TextStyle get buttonMedium => TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+  );
+
+  static TextStyle get buttonSmall => TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+  );
+
+  // Also keep the old buttonText for compatibility
+  static TextStyle get buttonText => TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: Colors.white,
+  );
+
+  // Hint Text Style
+  static TextStyle get hintText => TextStyle(
+    fontSize: 14,
+    color: AppTheme.hintColor,
   );
 
   // Status Badge Style
-  static const TextStyle statusBadge = TextStyle(
+  static TextStyle get statusBadge => TextStyle(
     fontWeight: FontWeight.bold,
     fontSize: 12,
     letterSpacing: 1,
+    color: Colors.white,
   );
 }
 
@@ -104,6 +167,74 @@ class AppDecorations {
           blurRadius: 20,
         ),
       ],
+    );
+  }
+
+  // Button Decoration
+  static BoxDecoration buttonDecoration({
+    bool isEnabled = true,
+    double borderRadius = 30,
+  }) {
+    return BoxDecoration(
+      borderRadius: BorderRadius.circular(borderRadius),
+      gradient: LinearGradient(
+        colors: isEnabled ? AppTheme.buttonGradient : [
+          Colors.grey.withOpacity(0.5),
+          Colors.grey.withOpacity(0.3),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      boxShadow: isEnabled ? [
+        BoxShadow(
+          color: AppTheme.primaryColor.withOpacity(0.4),
+          blurRadius: 20,
+          offset: const Offset(0, 8),
+        ),
+      ] : null,
+    );
+  }
+
+  // Input Field Decoration - 🔥 THIS WAS MISSING!
+  static InputDecoration inputDecoration({
+    required String label,
+    String? hintText,
+    Widget? prefixIcon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: AppTextStyles.bodySmall.copyWith(
+        color: AppTheme.textSecondary,
+      ),
+      hintText: hintText,
+      hintStyle: AppTextStyles.hintText,
+      prefixIcon: prefixIcon,
+      suffixIcon: suffixIcon,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(
+          color: AppTheme.glassBorder,
+          width: 1,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(
+          color: AppTheme.primaryColor.withOpacity(0.8),
+          width: 2,
+        ),
+      ),
+      filled: true,
+      fillColor: AppTheme.glassColor,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 20,
+        vertical: 16,
+      ),
     );
   }
 
@@ -211,15 +342,20 @@ class AppSpacing {
   // Container Sizes
   static const double loadingSize = 60.0;
   static const double qrSize = 200.0;
+  
+  // Button Sizes - 🔥 THIS WAS MISSING!
+  static const double buttonHeightLarge = 56.0;
+  static const double buttonHeightMedium = 48.0;
+  static const double buttonHeightSmall = 40.0;
 }
 
 class AppWidgetStyles {
   // Back Button Style
-  static Widget backButton(BuildContext context, {VoidCallback? onPressed}) {
+  static Widget backButton(BuildContext context, {VoidCallback? onPressed, IconData? icon}) {
     return Container(
       decoration: AppDecorations.glassContainer(borderRadius: 16),
       child: IconButton(
-        icon: Icon(Icons.arrow_back, color: AppTheme.textSecondary),
+        icon: Icon(icon ?? Icons.arrow_back, color: AppTheme.textSecondary),
         onPressed: onPressed ?? () {
           if (Navigator.canPop(context)) {
             Navigator.pop(context);

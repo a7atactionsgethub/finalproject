@@ -1,4 +1,3 @@
-
 // lib/screens/admin/add_student.dart
 import 'dart:async';
 import 'dart:io';
@@ -329,13 +328,21 @@ class _AddStudentPageState extends State<AddStudentPage> {
     final password = _passwordController.text;
     final rollNumber = _rollNumberController.text.trim();
 
+    // Email validation
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final authEmail = '${rollNumber.toLowerCase()}@$_studentEmailDomain';
+    
+    if (!emailRegex.hasMatch(authEmail)) {
+      _showErrorDialog('Invalid Email Format', 'Please check the roll number format.');
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     UserCredential? createdUserCred;
     String? imageUrl;
 
     try {
-      final authEmail = '${rollNumber.toLowerCase()}@$_studentEmailDomain';
       createdUserCred = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: authEmail, password: password);
 
@@ -575,6 +582,12 @@ class _AddStudentPageState extends State<AddStudentPage> {
                         _dobController,
                         'Date of Birth',
                         readOnly: true,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Date of birth is required.";
+                          }
+                          return null;
+                        },
                         onTap: () async {
                           DateTime? picked = await showDatePicker(
                             context: context,
@@ -583,12 +596,27 @@ class _AddStudentPageState extends State<AddStudentPage> {
                             lastDate: DateTime.now(),
                           );
                           if (picked != null) {
-                            _dobController.text = DateFormat('yyyy-MM-dd').format(picked);
+                            setState(() {
+                              _dobController.text = DateFormat('yyyy-MM-dd').format(picked);
+                            });
                           }
                         },
                       ),
 
-                      _buildTextField(_rollNumberController, 'Roll Number'),
+                      _buildTextField(_rollNumberController, 'Roll Number',
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Roll number is required.";
+                          }
+                          if (value.contains(' ')) {
+                            return "Roll number cannot contain spaces.";
+                          }
+                          if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                            return "Roll number cannot contain special characters.";
+                          }
+                          return null;
+                        },
+                      ),
 
                       // Department Dropdown
                       Padding(
@@ -605,7 +633,7 @@ class _AddStudentPageState extends State<AddStudentPage> {
                             ],
                           ),
                           child: DropdownButtonFormField<String>(
-                            initialValue: _departmentController.text.isEmpty ? null : _departmentController.text,
+                            value: _departmentController.text.isEmpty ? null : _departmentController.text,
                             dropdownColor: const Color(0xFF2A1A1A),
                             style: const TextStyle(color: Colors.white),
                             items: [
@@ -617,7 +645,7 @@ class _AddStudentPageState extends State<AddStudentPage> {
                               'MBA',
                               'MCA',
                               'Mech'
-                            ].map((String department) {
+                            ].map<DropdownMenuItem<String>>((String department) {
                               return DropdownMenuItem<String>(
                                 value: department,
                                 child: Text(
@@ -689,11 +717,11 @@ class _AddStudentPageState extends State<AddStudentPage> {
                             ],
                           ),
                           child: DropdownButtonFormField<String>(
-                            initialValue: _selectedGender,
+                            value: _selectedGender,
                             dropdownColor: const Color(0xFF2A1A1A),
                             style: const TextStyle(color: Colors.white),
                             items: ['Male', 'Female', 'Other']
-                                .map((g) => DropdownMenuItem(
+                                .map<DropdownMenuItem<String>>((g) => DropdownMenuItem<String>(
                                       value: g,
                                       child: Text(g),
                                     ))
@@ -740,6 +768,15 @@ class _AddStudentPageState extends State<AddStudentPage> {
                         _passwordController,
                         'Password',
                         obscureText: !_isPasswordVisible,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Password is required.";
+                          }
+                          if (value.length < 6) {
+                            return "Password must be at least 6 characters.";
+                          }
+                          return null;
+                        },
                         suffixIcon: IconButton(
                           icon: Icon(
                             _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
