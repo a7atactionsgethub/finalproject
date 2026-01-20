@@ -313,12 +313,11 @@ class _AddStudentPageState extends State<AddStudentPage> {
     );
   }
 
-  // Submit Form
+  // Submit Form with Date Validation
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
     final name = _nameController.text.trim();
-    final dob = _dobController.text.trim();
     final department = _departmentController.text.trim();
     final address = _addressController.text.trim();
     final phone = _phoneController.text.trim();
@@ -328,12 +327,33 @@ class _AddStudentPageState extends State<AddStudentPage> {
     final password = _passwordController.text;
     final rollNumber = _rollNumberController.text.trim();
 
+    // Validate Date of Birth
+    final dobText = _dobController.text.trim();
+    DateTime? dobDate;
+    String formattedDob = '';
+
+    if (dobText.isNotEmpty) {
+      try {
+        dobDate = DateTime.parse(dobText);
+        formattedDob = DateFormat('yyyy-MM-dd').format(dobDate);
+      } catch (e) {
+        _showErrorDialog('Invalid Date',
+            'Please select a valid date of birth in YYYY-MM-DD format.');
+        return;
+      }
+    } else {
+      _showErrorDialog('Missing Date', 'Date of birth is required.');
+      return;
+    }
+
     // Email validation
-    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    final emailRegex =
+        RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
     final authEmail = '${rollNumber.toLowerCase()}@$_studentEmailDomain';
-    
+
     if (!emailRegex.hasMatch(authEmail)) {
-      _showErrorDialog('Invalid Email Format', 'Please check the roll number format.');
+      _showErrorDialog(
+          'Invalid Email Format', 'Please check the roll number format.');
       return;
     }
 
@@ -349,13 +369,13 @@ class _AddStudentPageState extends State<AddStudentPage> {
       final uid = createdUserCred.user?.uid;
       if (uid == null) throw Exception('Failed to create user');
 
-      imageUrl =
-          await _uploadImage(file: _profileImageFile, bytes: _profileImageBytes);
+      imageUrl = await _uploadImage(
+          file: _profileImageFile, bytes: _profileImageBytes);
 
       final data = {
         'uid': uid,
         'name': name,
-        'dob': dob,
+        'dob': formattedDob, // Use validated and formatted date
         'department': department,
         'address': address,
         'phone': phone,
@@ -369,7 +389,10 @@ class _AddStudentPageState extends State<AddStudentPage> {
         'createdAt': FieldValue.serverTimestamp(),
       };
 
-      await FirebaseFirestore.instance.collection('students').doc(uid).set(data);
+      await FirebaseFirestore.instance
+          .collection('students')
+          .doc(uid)
+          .set(data);
 
       await FirebaseFirestore.instance.collection('users').doc(uid).set({
         'role': 'student',
@@ -386,7 +409,8 @@ class _AddStudentPageState extends State<AddStudentPage> {
       if (createdUserCred != null) {
         await createdUserCred.user?.delete();
       }
-      _showErrorDialog('Creation Failed', 'Failed to create student account: $e');
+      _showErrorDialog(
+          'Creation Failed', 'Failed to create student account: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -451,12 +475,14 @@ class _AddStudentPageState extends State<AddStudentPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: _primaryRed.withOpacity(0.8), width: 2),
+              borderSide:
+                  BorderSide(color: _primaryRed.withOpacity(0.8), width: 2),
             ),
             filled: true,
             fillColor: _glassWhite,
             suffixIcon: suffixIcon,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           ),
           validator: validator ??
               (value) {
@@ -473,23 +499,25 @@ class _AddStudentPageState extends State<AddStudentPage> {
   // Image Preview
   Widget _imagePreview(double radius) {
     Widget imageWidget;
-    
+
     if (kIsWeb) {
       if (_profileImageBytes != null) {
-        imageWidget = CircleAvatar(radius: radius, backgroundImage: MemoryImage(_profileImageBytes!));
+        imageWidget = CircleAvatar(
+            radius: radius, backgroundImage: MemoryImage(_profileImageBytes!));
       } else {
         imageWidget = CircleAvatar(
-          radius: radius, 
+          radius: radius,
           backgroundColor: _glassWhite,
           child: Icon(Icons.camera_alt, color: Colors.white70, size: 30),
         );
       }
     } else {
       if (_profileImageFile != null) {
-        imageWidget = CircleAvatar(radius: radius, backgroundImage: FileImage(_profileImageFile!));
+        imageWidget = CircleAvatar(
+            radius: radius, backgroundImage: FileImage(_profileImageFile!));
       } else {
         imageWidget = CircleAvatar(
-          radius: radius, 
+          radius: radius,
           backgroundColor: _glassWhite,
           child: Icon(Icons.camera_alt, color: Colors.white70, size: 30),
         );
@@ -577,7 +605,7 @@ class _AddStudentPageState extends State<AddStudentPage> {
 
                       _buildTextField(_nameController, 'Name'),
 
-                      // DOB Date Picker
+                      // DOB Date Picker - FIXED VERSION
                       _buildTextField(
                         _dobController,
                         'Date of Birth',
@@ -586,24 +614,52 @@ class _AddStudentPageState extends State<AddStudentPage> {
                           if (value == null || value.trim().isEmpty) {
                             return "Date of birth is required.";
                           }
-                          return null;
+                          // Additional validation for valid date
+                          try {
+                            DateTime.parse(value);
+                            return null;
+                          } catch (_) {
+                            return "Please enter a valid date (YYYY-MM-DD).";
+                          }
                         },
                         onTap: () async {
-                          DateTime? picked = await showDatePicker(
+                          final DateTime initialDate = DateTime.now().subtract(
+                              const Duration(
+                                  days: 365 * 18)); // 18 years old by default
+                          final DateTime? picked = await showDatePicker(
                             context: context,
-                            initialDate: DateTime(2000),
-                            firstDate: DateTime(1970),
+                            initialDate: initialDate,
+                            firstDate: DateTime(1900),
                             lastDate: DateTime.now(),
+                            builder: (context, child) {
+                              return Theme(
+                                data: ThemeData.dark().copyWith(
+                                  colorScheme: const ColorScheme.dark(
+                                    primary: Color(0xFFDC2626),
+                                    onPrimary: Colors.white,
+                                    surface: Color(0xFF2A1A1A),
+                                    onSurface: Colors.white,
+                                  ),
+                                  dialogBackgroundColor:
+                                      const Color(0xFF2A1A1A),
+                                ),
+                                child: child!,
+                              );
+                            },
                           );
+
                           if (picked != null) {
                             setState(() {
-                              _dobController.text = DateFormat('yyyy-MM-dd').format(picked);
+                              _dobController.text =
+                                  DateFormat('yyyy-MM-dd').format(picked);
                             });
                           }
                         },
                       ),
 
-                      _buildTextField(_rollNumberController, 'Roll Number',
+                      _buildTextField(
+                        _rollNumberController,
+                        'Roll Number',
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return "Roll number is required.";
@@ -611,7 +667,8 @@ class _AddStudentPageState extends State<AddStudentPage> {
                           if (value.contains(' ')) {
                             return "Roll number cannot contain spaces.";
                           }
-                          if (RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                          if (RegExp(r'[!@#$%^&*(),.?":{}|<>]')
+                              .hasMatch(value)) {
                             return "Roll number cannot contain special characters.";
                           }
                           return null;
@@ -633,19 +690,22 @@ class _AddStudentPageState extends State<AddStudentPage> {
                             ],
                           ),
                           child: DropdownButtonFormField<String>(
-                            value: _departmentController.text.isEmpty ? null : _departmentController.text,
+                            initialValue: _departmentController.text.isEmpty
+                                ? null
+                                : _departmentController.text,
                             dropdownColor: const Color(0xFF2A1A1A),
                             style: const TextStyle(color: Colors.white),
                             items: [
                               'IT',
-                              'CSE', 
+                              'CSE',
                               'ECE',
                               'EEE',
                               'Civil',
                               'MBA',
                               'MCA',
                               'Mech'
-                            ].map<DropdownMenuItem<String>>((String department) {
+                            ].map<DropdownMenuItem<String>>(
+                                (String department) {
                               return DropdownMenuItem<String>(
                                 value: department,
                                 child: Text(
@@ -668,15 +728,19 @@ class _AddStudentPageState extends State<AddStudentPage> {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(color: _glassBorder, width: 1),
+                                borderSide:
+                                    BorderSide(color: _glassBorder, width: 1),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(color: _primaryRed.withOpacity(0.8), width: 2),
+                                borderSide: BorderSide(
+                                    color: _primaryRed.withOpacity(0.8),
+                                    width: 2),
                               ),
                               filled: true,
                               fillColor: _glassWhite,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 16),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -696,8 +760,12 @@ class _AddStudentPageState extends State<AddStudentPage> {
                         'Phone Number',
                         keyboardType: TextInputType.phone,
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty) return "Phone number is required.";
-                          if (!RegExp(r'^\d{10}$').hasMatch(value)) return "Enter a valid 10-digit phone number.";
+                          if (value == null || value.trim().isEmpty) {
+                            return "Phone number is required.";
+                          }
+                          if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                            return "Enter a valid 10-digit phone number.";
+                          }
                           return null;
                         },
                       ),
@@ -717,16 +785,18 @@ class _AddStudentPageState extends State<AddStudentPage> {
                             ],
                           ),
                           child: DropdownButtonFormField<String>(
-                            value: _selectedGender,
+                            initialValue: _selectedGender,
                             dropdownColor: const Color(0xFF2A1A1A),
                             style: const TextStyle(color: Colors.white),
                             items: ['Male', 'Female', 'Other']
-                                .map<DropdownMenuItem<String>>((g) => DropdownMenuItem<String>(
-                                      value: g,
-                                      child: Text(g),
-                                    ))
+                                .map<DropdownMenuItem<String>>(
+                                    (g) => DropdownMenuItem<String>(
+                                          value: g,
+                                          child: Text(g),
+                                        ))
                                 .toList(),
-                            onChanged: (val) => setState(() => _selectedGender = val),
+                            onChanged: (val) =>
+                                setState(() => _selectedGender = val),
                             decoration: InputDecoration(
                               labelText: 'Gender',
                               labelStyle: TextStyle(color: Colors.white70),
@@ -736,29 +806,39 @@ class _AddStudentPageState extends State<AddStudentPage> {
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(color: _glassBorder, width: 1),
+                                borderSide:
+                                    BorderSide(color: _glassBorder, width: 1),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
-                                borderSide: BorderSide(color: _primaryRed.withOpacity(0.8), width: 2),
+                                borderSide: BorderSide(
+                                    color: _primaryRed.withOpacity(0.8),
+                                    width: 2),
                               ),
                               filled: true,
                               fillColor: _glassWhite,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 16),
                             ),
-                            validator: (value) => value == null ? 'Please select a gender' : null,
+                            validator: (value) =>
+                                value == null ? 'Please select a gender' : null,
                           ),
                         ),
                       ),
 
-                      _buildTextField(_guardianNameController, "Guardian's Name"),
+                      _buildTextField(
+                          _guardianNameController, "Guardian's Name"),
                       _buildTextField(
                         _guardianPhoneController,
                         "Guardian's Phone",
                         keyboardType: TextInputType.phone,
                         validator: (value) {
-                          if (value == null || value.trim().isEmpty) return "Guardian's phone is required.";
-                          if (!RegExp(r'^\d{10}$').hasMatch(value)) return "Enter a valid 10-digit phone number.";
+                          if (value == null || value.trim().isEmpty) {
+                            return "Guardian's phone is required.";
+                          }
+                          if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                            return "Enter a valid 10-digit phone number.";
+                          }
                           return null;
                         },
                       ),
@@ -779,11 +859,14 @@ class _AddStudentPageState extends State<AddStudentPage> {
                         },
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: Colors.white70,
                           ),
                           onPressed: () {
-                            setState(() => _isPasswordVisible = !_isPasswordVisible);
+                            setState(
+                                () => _isPasswordVisible = !_isPasswordVisible);
                           },
                         ),
                       ),
