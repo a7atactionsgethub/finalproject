@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class HistoryFilterWidget extends StatefulWidget {
   final Function(int year, String month, String letter) onFilterChanged;
   final int initialYear;
   final String initialMonth;
   final String initialLetter;
-  final Color glassWhite;
-  final Color glassBorder;
 
   const HistoryFilterWidget({
     super.key,
@@ -14,8 +13,6 @@ class HistoryFilterWidget extends StatefulWidget {
     required this.initialYear,
     required this.initialMonth,
     required this.initialLetter,
-    required this.glassWhite,
-    required this.glassBorder,
   });
 
   @override
@@ -27,8 +24,13 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
   late String _selectedMonth;
   late String _selectedLetter;
 
+  // Use 3-letter month abbreviations
   final List<String> _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  final List<String> _alphabets = ['All', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+  
+  final List<String> _letters = [
+    'All', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+  ];
 
   @override
   void initState() {
@@ -42,44 +44,43 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
     setState(() {
       _selectedYear += direction;
     });
-    _notifyFilterChange();
+    widget.onFilterChanged(_selectedYear, _selectedMonth, _selectedLetter);
   }
 
   void _selectMonth(String month) {
     setState(() {
       _selectedMonth = month;
     });
-    _notifyFilterChange();
+    widget.onFilterChanged(_selectedYear, _selectedMonth, _selectedLetter);
   }
 
   void _selectLetter(String letter) {
     setState(() {
       _selectedLetter = letter;
     });
-    _notifyFilterChange();
+    widget.onFilterChanged(_selectedYear, _selectedMonth, _selectedLetter);
   }
 
   void _clearFilters() {
+    final now = DateTime.now();
+    final currentMonth = DateFormat('MMM').format(now); // Use MMM format
+    
     setState(() {
-      _selectedYear = DateTime.now().year;
-      _selectedMonth = 'All';
+      _selectedYear = now.year;
+      _selectedMonth = currentMonth;
       _selectedLetter = 'All';
     });
-    _notifyFilterChange();
-  }
-
-  void _notifyFilterChange() {
     widget.onFilterChanged(_selectedYear, _selectedMonth, _selectedLetter);
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: widget.glassWhite,
-        borderRadius: BorderRadius.circular(24), // Main card back to normal
-        border: Border.all(color: widget.glassBorder),
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
@@ -88,63 +89,40 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with Clear button and active filters
+            // Header with filter label
             Row(
               children: [
-                // Active filters display
-                Expanded(
-                  child: Container(
-                    height: 36,
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(18), // INSIDE: Fully rounded
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.filter_list, color: Colors.white.withOpacity(0.6), size: 14),
-                        SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            '${_selectedMonth != 'All' ? _selectedMonth.substring(0, 3) : 'All'} • $_selectedYear${_selectedLetter != 'All' ? ' • $_selectedLetter' : ''}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withOpacity(0.8),
-                              fontWeight: FontWeight.w500,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
+                Icon(Icons.filter_list, color: Colors.white.withOpacity(0.7), size: 16),
+                const SizedBox(width: 8),
+                Text(
+                  'Filter History',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
                   ),
                 ),
-                
-                SizedBox(width: 8),
-                
-                // Clear button
+                const Spacer(),
                 GestureDetector(
                   onTap: _clearFilters,
                   child: Container(
-                    height: 36,
-                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(18), // INSIDE: Fully rounded
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
-                    child: Center(
-                      child: Text(
-                        'Clear',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.8),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
+                    child: Text(
+                      'Clear',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -152,9 +130,9 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
               ],
             ),
 
-            SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-            // Year and Month side by side
+            // Year and Month Row
             Row(
               children: [
                 // Year Selector
@@ -165,32 +143,33 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       Text(
                         'Year',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 12,
                           color: Colors.white.withOpacity(0.7),
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Container(
-                        height: 36,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(18), // INSIDE: Fully rounded
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.white.withOpacity(0.1)),
                         ),
                         child: Row(
                           children: [
                             IconButton(
-                              icon: Icon(Icons.chevron_left, color: Colors.white.withOpacity(0.7), size: 16),
+                              icon: Icon(Icons.chevron_left, 
+                                  color: Colors.white.withOpacity(0.7), size: 18),
                               onPressed: () => _changeYear(-1),
                               padding: EdgeInsets.zero,
-                              constraints: BoxConstraints(),
+                              constraints: const BoxConstraints(),
                             ),
                             Expanded(
                               child: Center(
                                 child: Text(
                                   _selectedYear.toString(),
-                                  style: TextStyle(
-                                    fontSize: 13,
+                                  style: const TextStyle(
+                                    fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white,
                                   ),
@@ -198,10 +177,11 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                               ),
                             ),
                             IconButton(
-                              icon: Icon(Icons.chevron_right, color: Colors.white.withOpacity(0.7), size: 16),
+                              icon: Icon(Icons.chevron_right, 
+                                  color: Colors.white.withOpacity(0.7), size: 18),
                               onPressed: () => _changeYear(1),
                               padding: EdgeInsets.zero,
-                              constraints: BoxConstraints(),
+                              constraints: const BoxConstraints(),
                             ),
                           ],
                         ),
@@ -209,9 +189,9 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                     ],
                   ),
                 ),
-                
-                SizedBox(width: 8),
-                
+
+                const SizedBox(width: 12),
+
                 // Month Selector
                 Expanded(
                   child: Column(
@@ -220,44 +200,45 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       Text(
                         'Month',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 12,
                           color: Colors.white.withOpacity(0.7),
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Container(
-                        height: 36,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(18), // INSIDE: Fully rounded
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(color: Colors.white.withOpacity(0.1)),
                         ),
                         child: Center(
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
-                              value: _selectedMonth.length > 3 ? _selectedMonth.substring(0, 3) : _selectedMonth,
-                              icon: Icon(Icons.arrow_drop_down, color: Colors.white.withOpacity(0.7), size: 16),
-                              style: TextStyle(
-                                fontSize: 13,
+                              value: _selectedMonth,
+                              icon: Icon(Icons.arrow_drop_down, 
+                                  color: Colors.white.withOpacity(0.7), size: 18),
+                              style: const TextStyle(
+                                fontSize: 14,
                                 color: Colors.white,
                                 fontWeight: FontWeight.w500,
                               ),
-                              dropdownColor: Color(0xFF2D1B1B),
-                              borderRadius: BorderRadius.circular(18), // INSIDE: Fully rounded
+                              dropdownColor: const Color(0xFF2A2A2A),
+                              borderRadius: BorderRadius.circular(12),
                               onChanged: (String? newValue) {
                                 if (newValue != null) {
-                                  _selectMonth(newValue == 'All' ? 'All' : _getFullMonthName(newValue));
+                                  _selectMonth(newValue);
                                 }
                               },
                               items: ['All', ..._months].map<DropdownMenuItem<String>>((String value) {
                                 return DropdownMenuItem<String>(
                                   value: value,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
                                     child: Text(
                                       value,
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: 14,
                                         color: Colors.white.withOpacity(0.9),
                                       ),
                                     ),
@@ -274,27 +255,27 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
               ],
             ),
 
-            SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-            // Alphabet Selector - Circular cards
+            // Alphabet Selector
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Name',
+                  'Name Starts With',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 12,
                     color: Colors.white.withOpacity(0.7),
                   ),
                 ),
-                SizedBox(height: 6),
+                const SizedBox(height: 8),
                 SizedBox(
                   height: 40,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
-                    itemCount: _alphabets.length,
+                    itemCount: _letters.length,
                     itemBuilder: (context, index) {
-                      final letter = _alphabets[index];
+                      final letter = _letters[index];
                       final isSelected = _selectedLetter == letter;
 
                       return GestureDetector(
@@ -305,13 +286,14 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                           margin: EdgeInsets.only(right: 6),
                           decoration: BoxDecoration(
                             color: isSelected 
-                                ? Colors.white.withOpacity(0.2)
+                                ? const Color(0xFFDC2626).withOpacity(0.3)
                                 : Colors.white.withOpacity(0.05),
-                            shape: BoxShape.circle, // Perfect circles
+                            borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: isSelected 
-                                  ? Colors.white.withOpacity(0.4)
-                                  : Colors.white.withOpacity(0.1),
+                                  ? const Color(0xFFDC2626)
+                                  : Colors.white.withOpacity(0.2),
+                              width: isSelected ? 1.5 : 1,
                             ),
                           ),
                           child: Center(
@@ -320,7 +302,7 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                color: Colors.white.withOpacity(isSelected ? 0.9 : 0.7),
+                                color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
                               ),
                             ),
                           ),
@@ -331,27 +313,34 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                 ),
               ],
             ),
+
+            const SizedBox(height: 8),
+
+            // Active Filter Display
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.filter_alt, size: 14, color: Colors.white.withOpacity(0.6)),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Showing: $_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • Starts with $_selectedLetter' : ''}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  String _getFullMonthName(String shortMonth) {
-    switch (shortMonth) {
-      case 'Jan': return 'January';
-      case 'Feb': return 'February';
-      case 'Mar': return 'March';
-      case 'Apr': return 'April';
-      case 'May': return 'May';
-      case 'Jun': return 'June';
-      case 'Jul': return 'July';
-      case 'Aug': return 'August';
-      case 'Sep': return 'September';
-      case 'Oct': return 'October';
-      case 'Nov': return 'November';
-      case 'Dec': return 'December';
-      default: return shortMonth;
-    }
   }
 }
