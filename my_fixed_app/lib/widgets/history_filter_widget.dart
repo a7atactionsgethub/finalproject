@@ -6,6 +6,7 @@ class HistoryFilterWidget extends StatefulWidget {
   final int initialYear;
   final String initialMonth;
   final String initialLetter;
+  final int resultCount; // Add this parameter
 
   const HistoryFilterWidget({
     super.key,
@@ -13,6 +14,7 @@ class HistoryFilterWidget extends StatefulWidget {
     required this.initialYear,
     required this.initialMonth,
     required this.initialLetter,
+    this.resultCount = 0, // Default to 0
   });
 
   @override
@@ -25,11 +27,49 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
   late String _selectedLetter;
 
   // Use 3-letter month abbreviations
-  final List<String> _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  
+  final List<String> _months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+  ];
+
   final List<String> _letters = [
-    'All', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+    'All',
+    'A',
+    'B',
+    'C',
+    'D',
+    'E',
+    'F',
+    'G',
+    'H',
+    'I',
+    'J',
+    'K',
+    'L',
+    'M',
+    'N',
+    'O',
+    'P',
+    'Q',
+    'R',
+    'S',
+    'T',
+    'U',
+    'V',
+    'W',
+    'X',
+    'Y',
+    'Z'
   ];
 
   @override
@@ -64,7 +104,7 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
   void _clearFilters() {
     final now = DateTime.now();
     final currentMonth = DateFormat('MMM').format(now); // Use MMM format
-    
+
     setState(() {
       _selectedYear = now.year;
       _selectedMonth = currentMonth;
@@ -94,10 +134,11 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with filter label
+            // Header with filter label and result count
             Row(
               children: [
-                Icon(Icons.filter_list, color: Colors.white.withOpacity(0.7), size: 16),
+                Icon(Icons.filter_list,
+                    color: Colors.white.withOpacity(0.7), size: 16),
                 const SizedBox(width: 8),
                 Text(
                   'Filter History',
@@ -108,10 +149,38 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                   ),
                 ),
                 const Spacer(),
+                // Result Count Badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: widget.resultCount > 0
+                        ? const Color(0xFFDC2626).withOpacity(0.2)
+                        : Colors.grey.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: widget.resultCount > 0
+                          ? const Color(0xFFDC2626).withOpacity(0.4)
+                          : Colors.grey.withOpacity(0.4),
+                    ),
+                  ),
+                  child: Text(
+                    '${widget.resultCount} results',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: widget.resultCount > 0
+                          ? const Color(0xFFDC2626)
+                          : Colors.grey,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: _clearFilters,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
@@ -153,13 +222,15 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withOpacity(0.1)),
+                          border:
+                              Border.all(color: Colors.white.withOpacity(0.1)),
                         ),
                         child: Row(
                           children: [
                             IconButton(
-                              icon: Icon(Icons.chevron_left, 
-                                  color: Colors.white.withOpacity(0.7), size: 18),
+                              icon: Icon(Icons.chevron_left,
+                                  color: Colors.white.withOpacity(0.7),
+                                  size: 18),
                               onPressed: () => _changeYear(-1),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
@@ -177,8 +248,9 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                               ),
                             ),
                             IconButton(
-                              icon: Icon(Icons.chevron_right, 
-                                  color: Colors.white.withOpacity(0.7), size: 18),
+                              icon: Icon(Icons.chevron_right,
+                                  color: Colors.white.withOpacity(0.7),
+                                  size: 18),
                               onPressed: () => _changeYear(1),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
@@ -210,14 +282,16 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withOpacity(0.1)),
+                          border:
+                              Border.all(color: Colors.white.withOpacity(0.1)),
                         ),
                         child: Center(
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _selectedMonth,
-                              icon: Icon(Icons.arrow_drop_down, 
-                                  color: Colors.white.withOpacity(0.7), size: 18),
+                              icon: Icon(Icons.arrow_drop_down,
+                                  color: Colors.white.withOpacity(0.7),
+                                  size: 18),
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.white,
@@ -230,11 +304,15 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                                   _selectMonth(newValue);
                                 }
                               },
-                              items: ['All', ..._months].map<DropdownMenuItem<String>>((String value) {
+                              items: [
+                                'All',
+                                ..._months
+                              ].map<DropdownMenuItem<String>>((String value) {
                                 return DropdownMenuItem<String>(
                                   value: value,
                                   child: Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12),
                                     child: Text(
                                       value,
                                       style: TextStyle(
@@ -261,12 +339,26 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Name Starts With',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.7),
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Name Starts With',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                    const Spacer(),
+                    if (widget.resultCount > 0)
+                      Text(
+                        'Found ${widget.resultCount}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: const Color(0xFFDC2626),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
@@ -285,12 +377,12 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                           height: 36,
                           margin: EdgeInsets.only(right: 6),
                           decoration: BoxDecoration(
-                            color: isSelected 
+                            color: isSelected
                                 ? const Color(0xFFDC2626).withOpacity(0.3)
                                 : Colors.white.withOpacity(0.05),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: isSelected 
+                              color: isSelected
                                   ? const Color(0xFFDC2626)
                                   : Colors.white.withOpacity(0.2),
                               width: isSelected ? 1.5 : 1,
@@ -301,8 +393,12 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                               letter,
                               style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.white.withOpacity(0.7),
                               ),
                             ),
                           ),
@@ -316,7 +412,7 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
 
             const SizedBox(height: 8),
 
-            // Active Filter Display
+            // Active Filter Display with result count
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -324,17 +420,39 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Icon(Icons.filter_alt, size: 14, color: Colors.white.withOpacity(0.6)),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Showing: $_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • Starts with $_selectedLetter' : ''}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
+                  Row(
+                    children: [
+                      Icon(Icons.filter_alt,
+                          size: 14, color: Colors.white.withOpacity(0.6)),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Showing: $_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • Starts with $_selectedLetter' : ''}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                      ),
+                    ],
                   ),
+                  if (widget.resultCount > 0)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDC2626).withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${widget.resultCount} found',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFFDC2626),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
