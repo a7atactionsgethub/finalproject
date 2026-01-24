@@ -27,10 +27,10 @@ class AppTheme {
 
   // ========== COLOR SYSTEM ==========
   static Color get primaryColor => _isDarkMode
-      ? const Color.fromARGB(255, 220, 141, 38)
+      ? const Color.fromARGB(255, 220, 105, 38)
       : const Color(0xFF0AD5FF);
   static Color get secondaryColor =>
-      _isDarkMode ? const Color(0xFF991B1B) : const Color(0xFF0099CC);
+      _isDarkMode ? const Color.fromARGB(255, 153, 46, 27) : const Color(0xFF0099CC);
   static Color get glassColor =>
       _isDarkMode ? const Color(0x1AFFFFFF) : const Color(0x0A000000);
   static Color get glassBorder =>
