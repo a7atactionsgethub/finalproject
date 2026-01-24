@@ -182,29 +182,20 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
             padding: const EdgeInsets.all(24.0),
             child: Column(
               children: [
-                // Header
+                // Header - FIXED OVERFLOW
                 Row(
                   children: [
                     AppWidgetStyles.backButton(context,
                         onPressed: () => context.pop()),
-                    const SizedBox(width: 16),
-                    Text(
-                      'Gatepass History',
-                      style: AppTextStyles.headerLarge
-                          .copyWith(color: AppTheme.textPrimary),
-                    ),
-                    const Spacer(),
-                    // Debug button
-                    if (!_isLoading && _gatepasses.isNotEmpty)
-                      Container(
-                        decoration:
-                            AppDecorations.glassContainer(borderRadius: 12),
-                        child: IconButton(
-                          icon: Icon(Icons.analytics_outlined,
-                              color: AppTheme.textSecondary, size: 20),
-                          onPressed: _printAvailableMonths,
-                        ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Gatepass History',
+                        style: AppTextStyles.headerLarge
+                            .copyWith(color: AppTheme.textPrimary),
+                        overflow: TextOverflow.ellipsis,
                       ),
+                    ),
                     const SizedBox(width: 8),
                     Container(
                       decoration:
@@ -213,19 +204,20 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
                         icon: Icon(Icons.settings_outlined,
                             color: AppTheme.textSecondary),
                         onPressed: () => context.go('/settings'),
+                        padding: const EdgeInsets.all(8),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                // Filter Widget with ALL months option - Updated with result count
+                // Filter Widget
                 HistoryFilterWidget(
                   onFilterChanged: _onFilterChanged,
                   initialYear: _selectedYear,
                   initialMonth: _selectedMonth,
                   initialLetter: _selectedLetter,
-                  resultCount: filteredData.length, // Pass result count here
+                  resultCount: filteredData.length,
                 ),
 
                 // Main Content

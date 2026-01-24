@@ -85,7 +85,8 @@ Future<void> _requestNotificationPermissions() async {
         badge: true,
         sound: true,
       );
-      debugPrint('Mobile notification permission: ${settings.authorizationStatus}');
+      debugPrint(
+          'Mobile notification permission: ${settings.authorizationStatus}');
     }
   } catch (e) {
     debugPrint('Error requesting notification permissions: $e');
@@ -137,7 +138,8 @@ void _setupFCMHandlers(GoRouter router) {
 
   FirebaseMessaging.instance.getInitialMessage().then((message) {
     if (message != null) {
-      debugPrint('App opened from terminated state by notification: ${message.data}');
+      debugPrint(
+          'App opened from terminated state by notification: ${message.data}');
     }
   });
 }
@@ -163,14 +165,16 @@ Future<void> main() async {
 
   const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
   const iosInit = DarwinInitializationSettings();
-  const initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
+  const initSettings =
+      InitializationSettings(android: androidInit, iOS: iosInit);
   await flutterLocalNotificationsPlugin.initialize(initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
     debugPrint('Local notification tapped. Payload: ${response.payload}');
   });
 
   await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(_channel);
 
   runApp(const HostelApp());
@@ -201,7 +205,8 @@ class HostelApp extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
       cardTheme: CardThemeData(
         elevation: 2,
@@ -214,16 +219,25 @@ class HostelApp extends StatelessWidget {
 /// ------------------ GoRouter Definition ------------------ ///
 final GoRouter _router = GoRouter(
   initialLocation: '/',
-  refreshListenable: GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
+  refreshListenable:
+      GoRouterRefreshStream(FirebaseAuth.instance.authStateChanges()),
   routes: <RouteBase>[
     GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
-    GoRoute(path: '/signin', builder: (context, state) => const UniversalSignIn()),
-    GoRoute(path: '/resolve', builder: (context, state) => const ResolveRolePage()),
+    GoRoute(
+        path: '/signin', builder: (context, state) => const UniversalSignIn()),
+    GoRoute(
+        path: '/resolve', builder: (context, state) => const ResolveRolePage()),
     GoRoute(path: '/admin', builder: (context, state) => const AdminPanel()),
-    GoRoute(path: '/add-student', builder: (context, state) => AddStudentPage()),
-    GoRoute(path: '/requested-gate-pass', builder: (context, state) => const RequestedGatePass()),
-    GoRoute(path: '/qr-scanner', builder: (context, state) => const QRScannerPage()),
-    GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
+    GoRoute(
+        path: '/add-student', builder: (context, state) => AddStudentPage()),
+    GoRoute(
+        path: '/requested-gate-pass',
+        builder: (context, state) => const RequestedGatePass()),
+    GoRoute(
+        path: '/qr-scanner',
+        builder: (context, state) => const QRScannerPage()),
+    GoRoute(
+        path: '/settings', builder: (context, state) => const SettingsScreen()),
     GoRoute(
       path: '/student-home',
       builder: (context, state) {
@@ -234,22 +248,24 @@ final GoRouter _router = GoRouter(
         );
       },
     ),
-    GoRoute(path: '/student-list', builder: (context, state) => const StudentListPage()),
+    GoRoute(
+        path: '/student-list',
+        builder: (context, state) => const StudentListPage()),
   ],
   redirect: (context, state) {
     final user = FirebaseAuth.instance.currentUser;
     final currentPath = state.uri.path;
-    
+
     // If user is not signed in and trying to access protected routes
     if (user == null && !['/', '/signin'].contains(currentPath)) {
       return '/signin';
     }
-    
+
     // If user is signed in and on splash or signin, redirect to resolve
     if (user != null && ['/', '/signin'].contains(currentPath)) {
       return '/resolve';
     }
-    
+
     return null;
   },
   errorBuilder: (context, state) => Scaffold(
@@ -285,9 +301,9 @@ class GoRouterRefreshStream extends ChangeNotifier {
     notifyListeners();
     _sub = stream.listen((_) => notifyListeners());
   }
-  
+
   late final StreamSubscription<dynamic> _sub;
-  
+
   @override
   void dispose() {
     _sub.cancel();

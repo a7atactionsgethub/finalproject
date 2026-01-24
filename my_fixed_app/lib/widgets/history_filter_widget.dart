@@ -6,7 +6,7 @@ class HistoryFilterWidget extends StatefulWidget {
   final int initialYear;
   final String initialMonth;
   final String initialLetter;
-  final int resultCount; // Add this parameter
+  final int resultCount; // Keep this parameter
 
   const HistoryFilterWidget({
     super.key,
@@ -149,7 +149,7 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                   ),
                 ),
                 const Spacer(),
-                // Result Count Badge
+                // Result Count Badge - KEEP THIS ONE
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -349,15 +349,7 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       ),
                     ),
                     const Spacer(),
-                    if (widget.resultCount > 0)
-                      Text(
-                        'Found ${widget.resultCount}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: const Color(0xFFDC2626),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                    // REMOVED: "Found X" text in alphabet selector header
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -436,23 +428,7 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       ),
                     ],
                   ),
-                  if (widget.resultCount > 0)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDC2626).withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${widget.resultCount} found',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFFDC2626),
-                        ),
-                      ),
-                    ),
+                  // REMOVED: "X found" badge in active filter display
                 ],
               ),
             ),
