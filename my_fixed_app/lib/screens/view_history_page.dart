@@ -182,39 +182,40 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
             padding: const EdgeInsets.all(24.0),
             child: Column(
               children: [
-                // Replace the Header section in your ViewHistoryScreen with this:
-
-// Header - UPDATED WITH MAX ROUNDING
-Row(
-  children: [
-    Container(
-      decoration: AppDecorations.glassContainer(borderRadius: 100), // MAX ROUNDING
-      child: IconButton(
-        icon: Icon(Icons.arrow_back, color: AppTheme.textSecondary),
-        onPressed: () => context.pop(),
-      ),
-    ),
-    const SizedBox(width: 12),
-    Expanded(
-      child: Text(
-        'Gatepass History',
-        style: AppTextStyles.headerLarge
-            .copyWith(color: AppTheme.textPrimary),
-        overflow: TextOverflow.ellipsis,
-      ),
-    ),
-    const SizedBox(width: 8),
-    Container(
-      decoration: AppDecorations.glassContainer(borderRadius: 100), // MAX ROUNDING
-      child: IconButton(
-        icon: Icon(Icons.settings_outlined,
-            color: AppTheme.textSecondary),
-        onPressed: () => context.go('/settings'),
-        padding: const EdgeInsets.all(8),
-      ),
-    ),
-  ],
-),
+                // Header
+                Row(
+                  children: [
+                    Container(
+                      decoration:
+                          AppDecorations.glassContainer(borderRadius: 100),
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back,
+                            color: AppTheme.textSecondary),
+                        onPressed: () => context.pop(),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Gatepass History',
+                        style: AppTextStyles.headerLarge
+                            .copyWith(color: AppTheme.textPrimary),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration:
+                          AppDecorations.glassContainer(borderRadius: 100),
+                      child: IconButton(
+                        icon: Icon(Icons.settings_outlined,
+                            color: AppTheme.textSecondary),
+                        onPressed: () => context.go('/settings'),
+                        padding: const EdgeInsets.all(8),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 24),
 
                 // Filter Widget
@@ -244,51 +245,83 @@ Row(
     );
   }
 
-  List<String> _getUniqueMonths() {
-    final months = <String>{};
-    for (final pass in _gatepasses) {
-      months.add(pass['monthFull'] as String);
-    }
-    return months.toList();
-  }
-
   Widget _buildNoDataState() {
     return Center(
       child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
         padding: const EdgeInsets.all(32),
         decoration: AppDecorations.glassContainer(
           borderRadius: 20,
-          color: Colors.orange.withOpacity(0.1),
-          borderColor: Colors.orange.withOpacity(0.3),
+          color: AppTheme.glassColor,
+          borderColor: AppTheme.glassBorder,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off,
-                size: 64, color: Colors.orange.withOpacity(0.7)),
-            const SizedBox(height: 20),
+            // Icon with gradient background
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: AppTheme.buttonGradient,
+                ),
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Icon(
+                Icons.search_off,
+                size: 48,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 24),
             Text(
               'No Gatepass Data',
-              style: AppTextStyles.headerMedium.copyWith(color: Colors.white),
+              style: AppTextStyles.headerMedium.copyWith(
+                color: AppTheme.textPrimary,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
-              'Add gatepasses or check Firebase connection.',
+              'There are no gatepasses in the system yet.',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppTheme.textSecondary,
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _loadAllGatepasses,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 8),
+            Text(
+              'New gatepasses will appear here once created.',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppTheme.textTertiary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Gradient button
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: AppTheme.buttonGradient,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ElevatedButton(
+                onPressed: _loadAllGatepasses,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shadowColor: Colors.transparent,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Refresh',
+                  style:
+                      AppTextStyles.buttonMedium.copyWith(color: Colors.white),
                 ),
               ),
-              child: Text('Refresh', style: AppTextStyles.buttonMedium),
             ),
           ],
         ),
@@ -299,21 +332,37 @@ Row(
   Widget _buildNoResultsState() {
     return Center(
       child: Container(
+        constraints: const BoxConstraints(maxWidth: 400),
         padding: const EdgeInsets.all(32),
         decoration: AppDecorations.glassContainer(
           borderRadius: 20,
-          color: Colors.purple.withOpacity(0.1),
-          borderColor: Colors.purple.withOpacity(0.3),
+          color: AppTheme.glassColor,
+          borderColor: AppTheme.glassBorder,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.filter_alt_off,
-                size: 64, color: Colors.purple.withOpacity(0.7)),
-            const SizedBox(height: 20),
+            // Icon with gradient background
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: AppTheme.buttonGradient,
+                ),
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Icon(
+                Icons.filter_alt_off,
+                size: 48,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 24),
             Text(
-              'No Matching Results',
-              style: AppTextStyles.headerMedium.copyWith(color: Colors.white),
+              'No Results Found',
+              style: AppTextStyles.headerMedium.copyWith(
+                color: AppTheme.textPrimary,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
@@ -321,31 +370,18 @@ Row(
                   ? 'No gatepasses found for $_selectedYear'
                   : 'No gatepasses found for ${_getFullMonthName(_selectedMonth)} $_selectedYear',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppTheme.textSecondary,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Try changing filters or select "All" months',
-              style: AppTextStyles.bodySmall.copyWith(color: Colors.white60),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _selectedMonth = 'All';
-                  _selectedLetter = 'All';
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.purple,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              'Try adjusting your filter settings',
+              style: AppTextStyles.bodySmall.copyWith(
+                color: AppTheme.textTertiary,
               ),
-              child: Text('Show All', style: AppTextStyles.buttonMedium),
             ),
+            // Removed the button and extra spacing
           ],
         ),
       ),
@@ -380,7 +416,7 @@ Row(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Date header
+              // Date header with gradient
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -401,10 +437,18 @@ Row(
                       style: AppTextStyles.headerSmall
                           .copyWith(color: Colors.white),
                     ),
-                    Text(
-                      '${passes.length} ${passes.length == 1 ? 'entry' : 'entries'}',
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: Colors.white.withOpacity(0.8)),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: Text(
+                        '${passes.length} ${passes.length == 1 ? 'entry' : 'entries'}',
+                        style: AppTextStyles.bodySmall
+                            .copyWith(color: Colors.white),
+                      ),
                     ),
                   ],
                 ),
@@ -429,10 +473,10 @@ Row(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      decoration: AppDecorations.glassContainer(
+        borderRadius: 12,
         color: AppTheme.glassColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.glassBorder),
+        borderColor: AppTheme.glassBorder,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -466,7 +510,8 @@ Row(
                   color: _getStatusColor(pass['status']).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                      color: _getStatusColor(pass['status']).withOpacity(0.3)),
+                    color: _getStatusColor(pass['status']).withOpacity(0.3),
+                  ),
                 ),
                 child: Text(
                   (pass['status'] as String).toUpperCase(),
@@ -537,7 +582,11 @@ Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildTimeInfo('OUT', pass['outTime']),
-                Container(height: 20, width: 1, color: AppTheme.glassBorder),
+                Container(
+                  height: 20,
+                  width: 1,
+                  color: AppTheme.glassBorder,
+                ),
                 _buildTimeInfo('IN', pass['inTime']),
               ],
             ),
@@ -572,13 +621,15 @@ Row(
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'approved':
-        return Colors.green;
+        return const Color(0xFF10B981); // Green from common themes
       case 'pending':
-        return Colors.orange;
+        return const Color(0xFFF59E0B); // Amber
       case 'rejected':
-        return Colors.red;
+        return const Color(0xFFEF4444); // Red
       case 'out':
-        return Colors.blue;
+        return const Color(0xFF3B82F6); // Blue
+      case 'in':
+        return const Color(0xFF8B5CF6); // Violet
       default:
         return AppTheme.textSecondary;
     }
