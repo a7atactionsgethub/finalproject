@@ -1,12 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+// ========== DESIGN SYSTEM CONSTANTS ==========
+const double kControlHeight = 38; // Reduced from 42
+const double kButtonHeight = 32; // For smaller buttons
+const double kRadiusLarge = 16; // Reduced from 20
+const double kRadiusMedium = 10; // Reduced from 12
+const double kRadiusSmall = 8; // Reduced from 10
+const double kRadiusFull = 100; // Max rounding for pill-shaped buttons
+const EdgeInsets kBlockPadding = EdgeInsets.all(14); // Reduced from 16
+const EdgeInsets kChipPadding =
+    EdgeInsets.symmetric(horizontal: 10, vertical: 6); // Reduced
+const EdgeInsets kButtonPadding =
+    EdgeInsets.symmetric(horizontal: 12, vertical: 4); // For smaller buttons
+const Color kPrimaryRed = Color(0xFFDC2626);
+const Color kGlassWhite = Color.fromRGBO(255, 255, 255, 0.1);
+const Color kGlassBorder = Color.fromRGBO(255, 255, 255, 0.2);
+// =============================================
+
 class HistoryFilterWidget extends StatefulWidget {
   final Function(int year, String month, String letter) onFilterChanged;
   final int initialYear;
   final String initialMonth;
   final String initialLetter;
-  final int resultCount; // Keep this parameter
+  final int resultCount;
 
   const HistoryFilterWidget({
     super.key,
@@ -14,7 +31,7 @@ class HistoryFilterWidget extends StatefulWidget {
     required this.initialYear,
     required this.initialMonth,
     required this.initialLetter,
-    this.resultCount = 0, // Default to 0
+    this.resultCount = 0,
   });
 
   @override
@@ -26,7 +43,6 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
   late String _selectedMonth;
   late String _selectedLetter;
 
-  // Use 3-letter month abbreviations
   final List<String> _months = [
     'Jan',
     'Feb',
@@ -103,7 +119,7 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
 
   void _clearFilters() {
     final now = DateTime.now();
-    final currentMonth = DateFormat('MMM').format(now); // Use MMM format
+    final currentMonth = DateFormat('MMM').format(now);
 
     setState(() {
       _selectedYear = now.year;
@@ -116,82 +132,92 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12), // Reduced
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.2)),
+        color: kGlassWhite,
+        borderRadius: BorderRadius.circular(kRadiusLarge),
+        border: Border.all(color: kGlassBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
-            blurRadius: 20,
+            blurRadius: 16, // Reduced
           ),
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: kBlockPadding,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with filter label and result count
+            // Header with filter label and result count - COMPACT
             Row(
               children: [
-                Icon(Icons.filter_list,
-                    color: Colors.white.withOpacity(0.7), size: 16),
-                const SizedBox(width: 8),
+                Icon(
+                  Icons.filter_list,
+                  color: Colors.white.withOpacity(0.7),
+                  size: 16, // Reduced
+                ),
+                const SizedBox(width: 8), // Reduced
                 Text(
                   'Filter History',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 14, // Reduced
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
+                    letterSpacing: 0.1, // Reduced
                   ),
                 ),
                 const Spacer(),
-                // Result Count Badge - KEEP THIS ONE
+                // Result Count Badge with max rounding - SMALLER
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  height: kButtonHeight, // Smaller height
+                  padding: kButtonPadding,
                   decoration: BoxDecoration(
                     color: widget.resultCount > 0
-                        ? const Color(0xFFDC2626).withOpacity(0.2)
+                        ? kPrimaryRed.withOpacity(0.2)
                         : Colors.grey.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(kRadiusFull),
                     border: Border.all(
                       color: widget.resultCount > 0
-                          ? const Color(0xFFDC2626).withOpacity(0.4)
+                          ? kPrimaryRed.withOpacity(0.4)
                           : Colors.grey.withOpacity(0.4),
+                      width: 1,
                     ),
                   ),
-                  child: Text(
-                    '${widget.resultCount} results',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: widget.resultCount > 0
-                          ? const Color(0xFFDC2626)
-                          : Colors.grey,
+                  child: Center(
+                    child: Text(
+                      '${widget.resultCount} results',
+                      style: TextStyle(
+                        fontSize: 11, // Reduced
+                        fontWeight: FontWeight.w600,
+                        color:
+                            widget.resultCount > 0 ? kPrimaryRed : Colors.grey,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6), // Reduced
+                // Clear Button with max rounding - SMALLER
                 GestureDetector(
                   onTap: _clearFilters,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    height: kButtonHeight, // Smaller height
+                    padding: kButtonPadding,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      color: kGlassWhite,
+                      borderRadius: BorderRadius.circular(kRadiusFull),
+                      border: Border.all(color: kGlassBorder),
                     ),
-                    child: Text(
-                      'Clear',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                    child: Center(
+                      child: Text(
+                        'Clear',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 11, // Reduced
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.1, // Reduced
+                        ),
                       ),
                     ),
                   ),
@@ -199,12 +225,12 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
               ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced from 14
 
-            // Year and Month Row
+            // Year and Month Row - COMPACT
             Row(
               children: [
-                // Year Selector
+                // Year Selector with max rounding
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,48 +238,59 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       Text(
                         'Year',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11, // Reduced
                           color: Colors.white.withOpacity(0.7),
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.3, // Reduced
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4), // Reduced from 6
                       Container(
-                        height: 40,
+                        height: kControlHeight,
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.1)),
+                          borderRadius: BorderRadius.circular(
+                              kRadiusFull), // MAX ROUNDING
+                          border: Border.all(color: kGlassBorder),
                         ),
                         child: Row(
                           children: [
-                            IconButton(
-                              icon: Icon(Icons.chevron_left,
+                            GestureDetector(
+                              onTap: () => _changeYear(-1),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8), // Reduced
+                                child: Icon(
+                                  Icons.chevron_left,
+                                  size: 18, // Reduced
                                   color: Colors.white.withOpacity(0.7),
-                                  size: 18),
-                              onPressed: () => _changeYear(-1),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+                                ),
+                              ),
                             ),
                             Expanded(
                               child: Center(
                                 child: Text(
                                   _selectedYear.toString(),
                                   style: const TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 14, // Reduced
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white,
+                                    letterSpacing: 0.3, // Reduced
                                   ),
                                 ),
                               ),
                             ),
-                            IconButton(
-                              icon: Icon(Icons.chevron_right,
+                            GestureDetector(
+                              onTap: () => _changeYear(1),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8), // Reduced
+                                child: Icon(
+                                  Icons.chevron_right,
+                                  size: 18, // Reduced
                                   color: Colors.white.withOpacity(0.7),
-                                  size: 18),
-                              onPressed: () => _changeYear(1),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -262,9 +299,9 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                   ),
                 ),
 
-                const SizedBox(width: 12),
+                const SizedBox(width: 10), // Reduced from 12
 
-                // Month Selector
+                // Month Selector with max rounding
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,33 +309,39 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       Text(
                         'Month',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11, // Reduced
                           color: Colors.white.withOpacity(0.7),
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.3, // Reduced
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4), // Reduced from 6
                       Container(
-                        height: 40,
+                        height: kControlHeight,
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.1)),
+                          borderRadius: BorderRadius.circular(
+                              kRadiusFull), // MAX ROUNDING
+                          border: Border.all(color: kGlassBorder),
                         ),
                         child: Center(
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _selectedMonth,
-                              icon: Icon(Icons.arrow_drop_down,
-                                  color: Colors.white.withOpacity(0.7),
-                                  size: 18),
+                              icon: Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.white.withOpacity(0.7),
+                                size: 20, // Reduced
+                              ),
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 13, // Reduced
                                 color: Colors.white,
                                 fontWeight: FontWeight.w500,
+                                letterSpacing: 0.1, // Reduced
                               ),
-                              dropdownColor: const Color(0xFF2A2A2A),
-                              borderRadius: BorderRadius.circular(12),
+                              dropdownColor: const Color(0xFF1A1A1A),
+                              borderRadius:
+                                  BorderRadius.circular(kRadiusMedium),
                               onChanged: (String? newValue) {
                                 if (newValue != null) {
                                   _selectMonth(newValue);
@@ -312,12 +355,13 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                                   value: value,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 12),
+                                        horizontal: 12), // Reduced
                                     child: Text(
                                       value,
                                       style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 13, // Reduced
                                         color: Colors.white.withOpacity(0.9),
+                                        fontWeight: FontWeight.w500,
                                       ),
                                     ),
                                   ),
@@ -333,9 +377,9 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
               ],
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Reduced
 
-            // Alphabet Selector
+            // Alphabet Selector - COMPACT
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -344,17 +388,18 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                     Text(
                       'Name Starts With',
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 11, // Reduced
                         color: Colors.white.withOpacity(0.7),
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.3, // Reduced
                       ),
                     ),
                     const Spacer(),
-                    // REMOVED: "Found X" text in alphabet selector header
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6), // Reduced from 8
                 SizedBox(
-                  height: 40,
+                  height: kControlHeight,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: _letters.length,
@@ -365,18 +410,17 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       return GestureDetector(
                         onTap: () => _selectLetter(letter),
                         child: Container(
-                          width: 36,
-                          height: 36,
-                          margin: EdgeInsets.only(right: 6),
+                          width: kControlHeight,
+                          height: kControlHeight,
+                          margin: const EdgeInsets.only(right: 6), // Reduced
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? const Color(0xFFDC2626).withOpacity(0.3)
+                                ? kPrimaryRed.withOpacity(0.3)
                                 : Colors.white.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(
+                                kRadiusFull), // MAX ROUNDING
                             border: Border.all(
-                              color: isSelected
-                                  ? const Color(0xFFDC2626)
-                                  : Colors.white.withOpacity(0.2),
+                              color: isSelected ? kPrimaryRed : kGlassBorder,
                               width: isSelected ? 1.5 : 1,
                             ),
                           ),
@@ -384,13 +428,14 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                             child: Text(
                               letter,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 13, // Reduced
                                 fontWeight: isSelected
                                     ? FontWeight.w600
                                     : FontWeight.w500,
                                 color: isSelected
                                     ? Colors.white
-                                    : Colors.white.withOpacity(0.7),
+                                    : Colors.white.withOpacity(0.8),
+                                letterSpacing: 0.1, // Reduced
                               ),
                             ),
                           ),
@@ -402,33 +447,39 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
               ],
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 10), // Reduced from 12
 
-            // Active Filter Display with result count
+            // Active Filter Display with max rounding
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: kChipPadding,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius:
+                    BorderRadius.circular(kRadiusFull), // MAX ROUNDING
+                border: Border.all(color: kGlassBorder),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.filter_alt,
-                          size: 14, color: Colors.white.withOpacity(0.6)),
-                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.filter_alt,
+                        size: 14, // Reduced
+                        color: Colors.white.withOpacity(0.6),
+                      ),
+                      const SizedBox(width: 8), // Reduced
                       Text(
-                        'Showing: $_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • Starts with $_selectedLetter' : ''}',
+                        'Showing: $_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • $_selectedLetter' : ''}',
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 11, // Reduced
+                          color: Colors.white.withOpacity(0.9),
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.1, // Reduced
                         ),
                       ),
                     ],
                   ),
-                  // REMOVED: "X found" badge in active filter display
                 ],
               ),
             ),
