@@ -157,7 +157,7 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Collapsible Header - Always Visible (Clean version)
+          // Collapsible Header - Always Visible
           InkWell(
             onTap: _toggleExpanded,
             borderRadius: BorderRadius.circular(_isExpanded ? 16 : kRadiusFull),
@@ -190,8 +190,36 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
+                    )
+                  else
+                    const Spacer(),
+
+                  const SizedBox(width: 8),
+
+                  // Clear Button
+                  GestureDetector(
+                    onTap: _clearFilters,
+                    child: Container(
+                      height: kButtonHeight,
+                      padding: kButtonPadding,
+                      decoration: BoxDecoration(
+                        color: AppTheme.glassColor,
+                        borderRadius: BorderRadius.circular(kRadiusFull),
+                        border: Border.all(color: AppTheme.glassBorder),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Clear',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppTheme.textPrimary,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                      ),
                     ),
-                  const Spacer(),
+                  ),
+                  const SizedBox(width: 8),
                   // Expand/Collapse Icon
                   Icon(
                     _isExpanded
@@ -228,73 +256,6 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       ),
                     ),
                   ),
-
-                  // Result Count and Clear Button Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Result Count Badge
-                      Container(
-                        height: kButtonHeight,
-                        padding: kButtonPadding,
-                        decoration: BoxDecoration(
-                          color: widget.resultCount > 0
-                              ? AppTheme.primaryColor.withOpacity(0.2)
-                              : Colors.grey.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(kRadiusFull),
-                          border: Border.all(
-                            color: widget.resultCount > 0
-                                ? AppTheme.primaryColor.withOpacity(0.4)
-                                : Colors.grey.withOpacity(0.4),
-                            width: 1,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            '${widget.resultCount} results',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Clear Button
-                      GestureDetector(
-                        onTap: _clearFilters,
-                        child: Container(
-                          height: kButtonHeight,
-                          padding: kButtonPadding,
-                          decoration: BoxDecoration(
-                            color: AppTheme.glassColor,
-                            borderRadius: BorderRadius.circular(kRadiusFull),
-                            border: Border.all(color: AppTheme.glassBorder),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.refresh,
-                                size: 14,
-                                color: AppTheme.textSecondary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Clear Filters',
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppTheme.textPrimary,
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0.1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
 
                   // Year and Month Row
                   Row(
@@ -515,25 +476,49 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       border: Border.all(color: AppTheme.glassBorder),
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.filter_alt,
-                              size: 14,
-                              color: AppTheme.textTertiary,
+                        Icon(
+                          Icons.filter_alt,
+                          size: 14,
+                          color: AppTheme.textTertiary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Showing: $_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • $_selectedLetter' : ''}',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppTheme.textPrimary,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.1,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Showing: $_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • $_selectedLetter' : ''}',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppTheme.textPrimary,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.1,
-                              ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Results Badge - Moved here
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: widget.resultCount > 0
+                                ? AppTheme.primaryColor.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(kRadiusFull),
+                            border: Border.all(
+                              color: widget.resultCount > 0
+                                  ? AppTheme.primaryColor.withOpacity(0.4)
+                                  : Colors.grey.withOpacity(0.4),
+                              width: 1,
                             ),
-                          ],
+                          ),
+                          child: Text(
+                            '${widget.resultCount}',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                              fontSize: 11,
+                            ),
+                          ),
                         ),
                       ],
                     ),
