@@ -182,33 +182,39 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
             padding: const EdgeInsets.all(24.0),
             child: Column(
               children: [
-                // Header - FIXED OVERFLOW
-                Row(
-                  children: [
-                    AppWidgetStyles.backButton(context,
-                        onPressed: () => context.pop()),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Gatepass History',
-                        style: AppTextStyles.headerLarge
-                            .copyWith(color: AppTheme.textPrimary),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      decoration:
-                          AppDecorations.glassContainer(borderRadius: 16),
-                      child: IconButton(
-                        icon: Icon(Icons.settings_outlined,
-                            color: AppTheme.textSecondary),
-                        onPressed: () => context.go('/settings'),
-                        padding: const EdgeInsets.all(8),
-                      ),
-                    ),
-                  ],
-                ),
+                // Replace the Header section in your ViewHistoryScreen with this:
+
+// Header - UPDATED WITH MAX ROUNDING
+Row(
+  children: [
+    Container(
+      decoration: AppDecorations.glassContainer(borderRadius: 100), // MAX ROUNDING
+      child: IconButton(
+        icon: Icon(Icons.arrow_back, color: AppTheme.textSecondary),
+        onPressed: () => context.pop(),
+      ),
+    ),
+    const SizedBox(width: 12),
+    Expanded(
+      child: Text(
+        'Gatepass History',
+        style: AppTextStyles.headerLarge
+            .copyWith(color: AppTheme.textPrimary),
+        overflow: TextOverflow.ellipsis,
+      ),
+    ),
+    const SizedBox(width: 8),
+    Container(
+      decoration: AppDecorations.glassContainer(borderRadius: 100), // MAX ROUNDING
+      child: IconButton(
+        icon: Icon(Icons.settings_outlined,
+            color: AppTheme.textSecondary),
+        onPressed: () => context.go('/settings'),
+        padding: const EdgeInsets.all(8),
+      ),
+    ),
+  ],
+),
                 const SizedBox(height: 24),
 
                 // Filter Widget

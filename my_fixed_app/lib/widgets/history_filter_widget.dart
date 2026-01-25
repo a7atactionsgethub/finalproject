@@ -1,21 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+// Import your app theme
+import '../themes/app_theme.dart';
 
 // ========== DESIGN SYSTEM CONSTANTS ==========
-const double kControlHeight = 38; // Reduced from 42
-const double kButtonHeight = 32; // For smaller buttons
-const double kRadiusLarge = 16; // Reduced from 20
-const double kRadiusMedium = 10; // Reduced from 12
-const double kRadiusSmall = 8; // Reduced from 10
-const double kRadiusFull = 100; // Max rounding for pill-shaped buttons
-const EdgeInsets kBlockPadding = EdgeInsets.all(14); // Reduced from 16
+const double kControlHeight = 38;
+const double kButtonHeight = 32;
+const double kRadiusFull = 100;
+const EdgeInsets kBlockPadding = EdgeInsets.all(14);
 const EdgeInsets kChipPadding =
-    EdgeInsets.symmetric(horizontal: 10, vertical: 6); // Reduced
+    EdgeInsets.symmetric(horizontal: 10, vertical: 6);
 const EdgeInsets kButtonPadding =
-    EdgeInsets.symmetric(horizontal: 12, vertical: 4); // For smaller buttons
-const Color kPrimaryRed = Color(0xFFDC2626);
-const Color kGlassWhite = Color.fromRGBO(255, 255, 255, 0.1);
-const Color kGlassBorder = Color.fromRGBO(255, 255, 255, 0.2);
+    EdgeInsets.symmetric(horizontal: 12, vertical: 4);
 // =============================================
 
 class HistoryFilterWidget extends StatefulWidget {
@@ -42,6 +38,7 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
   late int _selectedYear;
   late String _selectedMonth;
   late String _selectedLetter;
+  bool _isExpanded = false; // Collapsed by default
 
   final List<String> _months = [
     'Jan',
@@ -94,6 +91,19 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
     _selectedYear = widget.initialYear;
     _selectedMonth = widget.initialMonth;
     _selectedLetter = widget.initialLetter;
+
+    // Listen to theme changes
+    AppTheme.addListener(_onThemeChanged);
+  }
+
+  @override
+  void dispose() {
+    AppTheme.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() {
+    setState(() {});
   }
 
   void _changeYear(int direction) {
@@ -129,166 +139,283 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
     widget.onFilterChanged(_selectedYear, _selectedMonth, _selectedLetter);
   }
 
+  void _toggleExpanded() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12), // Reduced
-      decoration: BoxDecoration(
-        color: kGlassWhite,
-        borderRadius: BorderRadius.circular(kRadiusLarge),
-        border: Border.all(color: kGlassBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 16, // Reduced
-          ),
-        ],
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: AppDecorations.glassContainer(
+        borderRadius: _isExpanded ? 16 : kRadiusFull,
       ),
-      child: Padding(
-        padding: kBlockPadding,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with filter label and result count - COMPACT
-            Row(
-              children: [
-                Icon(
-                  Icons.filter_list,
-                  color: Colors.white.withOpacity(0.7),
-                  size: 16, // Reduced
-                ),
-                const SizedBox(width: 8), // Reduced
-                Text(
-                  'Filter History',
-                  style: TextStyle(
-                    fontSize: 14, // Reduced
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                    letterSpacing: 0.1, // Reduced
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Collapsible Header - Always Visible
+          InkWell(
+            onTap: _toggleExpanded,
+            borderRadius: BorderRadius.circular(_isExpanded ? 16 : kRadiusFull),
+            child: Container(
+              padding: kBlockPadding,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.filter_list,
+                    color: AppTheme.textSecondary,
+                    size: 16,
                   ),
-                ),
-                const Spacer(),
-                // Result Count Badge with max rounding - SMALLER
-                Container(
-                  height: kButtonHeight, // Smaller height
-                  padding: kButtonPadding,
-                  decoration: BoxDecoration(
-                    color: widget.resultCount > 0
-                        ? kPrimaryRed.withOpacity(0.2)
-                        : Colors.grey.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(kRadiusFull),
-                    border: Border.all(
-                      color: widget.resultCount > 0
-                          ? kPrimaryRed.withOpacity(0.4)
-                          : Colors.grey.withOpacity(0.4),
-                      width: 1,
+                  const SizedBox(width: 8),
+                  Text(
+                    'Filter History',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.1,
                     ),
                   ),
-                  child: Center(
-                    child: Text(
-                      '${widget.resultCount} results',
-                      style: TextStyle(
-                        fontSize: 11, // Reduced
-                        fontWeight: FontWeight.w600,
-                        color:
-                            widget.resultCount > 0 ? kPrimaryRed : Colors.grey,
+                  const SizedBox(width: 8),
+                  // Compact filter summary when collapsed
+                  if (!_isExpanded)
+                    Expanded(
+                      child: Text(
+                        '($_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • $_selectedLetter' : ''})',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppTheme.textTertiary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 6), // Reduced
-                // Clear Button with max rounding - SMALLER
-                GestureDetector(
-                  onTap: _clearFilters,
-                  child: Container(
-                    height: kButtonHeight, // Smaller height
+                    )
+                  else
+                    const Spacer(),
+                  // Result Count Badge
+                  Container(
+                    height: kButtonHeight,
                     padding: kButtonPadding,
                     decoration: BoxDecoration(
-                      color: kGlassWhite,
+                      color: widget.resultCount > 0
+                          ? AppTheme.primaryColor.withOpacity(0.2)
+                          : Colors.grey.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(kRadiusFull),
-                      border: Border.all(color: kGlassBorder),
+                      border: Border.all(
+                        color: widget.resultCount > 0
+                            ? AppTheme.primaryColor.withOpacity(0.4)
+                            : Colors.grey.withOpacity(0.4),
+                        width: 1,
+                      ),
                     ),
                     child: Center(
                       child: Text(
-                        'Clear',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 11, // Reduced
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.1, // Reduced
+                        '${widget.resultCount} results',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12), // Reduced from 14
-
-            // Year and Month Row - COMPACT
-            Row(
-              children: [
-                // Year Selector with max rounding
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Year',
-                        style: TextStyle(
-                          fontSize: 11, // Reduced
-                          color: Colors.white.withOpacity(0.7),
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.3, // Reduced
+                  const SizedBox(width: 6),
+                  // Clear Button
+                  GestureDetector(
+                    onTap: _clearFilters,
+                    child: Container(
+                      height: kButtonHeight,
+                      padding: kButtonPadding,
+                      decoration: BoxDecoration(
+                        color: AppTheme.glassColor,
+                        borderRadius: BorderRadius.circular(kRadiusFull),
+                        border: Border.all(color: AppTheme.glassBorder),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Clear',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppTheme.textPrimary,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.1,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4), // Reduced from 6
-                      Container(
-                        height: kControlHeight,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(
-                              kRadiusFull), // MAX ROUNDING
-                          border: Border.all(color: kGlassBorder),
-                        ),
-                        child: Row(
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // Expand/Collapse Icon
+                  Icon(
+                    _isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: AppTheme.textSecondary,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Expandable Content with Animation
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Divider
+                  Container(
+                    height: 1,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          AppTheme.dividerColor,
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Year and Month Row
+                  Row(
+                    children: [
+                      // Year Selector
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            GestureDetector(
-                              onTap: () => _changeYear(-1),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8), // Reduced
-                                child: Icon(
-                                  Icons.chevron_left,
-                                  size: 18, // Reduced
-                                  color: Colors.white.withOpacity(0.7),
-                                ),
+                            Text(
+                              'Year',
+                              style: AppTextStyles.labelTertiary.copyWith(
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.3,
                               ),
                             ),
-                            Expanded(
-                              child: Center(
-                                child: Text(
-                                  _selectedYear.toString(),
-                                  style: const TextStyle(
-                                    fontSize: 14, // Reduced
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white,
-                                    letterSpacing: 0.3, // Reduced
+                            const SizedBox(height: 4),
+                            Container(
+                              height: kControlHeight,
+                              decoration: BoxDecoration(
+                                color: AppTheme.glassColor,
+                                borderRadius:
+                                    BorderRadius.circular(kRadiusFull),
+                                border: Border.all(color: AppTheme.glassBorder),
+                              ),
+                              child: Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => _changeYear(-1),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      child: Icon(
+                                        Icons.chevron_left,
+                                        size: 18,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  Expanded(
+                                    child: Center(
+                                      child: Text(
+                                        _selectedYear.toString(),
+                                        style:
+                                            AppTextStyles.bodyMedium.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () => _changeYear(1),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      child: Icon(
+                                        Icons.chevron_right,
+                                        size: 18,
+                                        color: AppTheme.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            GestureDetector(
-                              onTap: () => _changeYear(1),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8), // Reduced
-                                child: Icon(
-                                  Icons.chevron_right,
-                                  size: 18, // Reduced
-                                  color: Colors.white.withOpacity(0.7),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      // Month Selector
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Month',
+                              style: AppTextStyles.labelTertiary.copyWith(
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              height: kControlHeight,
+                              decoration: BoxDecoration(
+                                color: AppTheme.glassColor,
+                                borderRadius:
+                                    BorderRadius.circular(kRadiusFull),
+                                border: Border.all(color: AppTheme.glassBorder),
+                              ),
+                              child: Center(
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: _selectedMonth,
+                                    icon: Icon(
+                                      Icons.arrow_drop_down,
+                                      color: AppTheme.textSecondary,
+                                      size: 20,
+                                    ),
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppTheme.textPrimary,
+                                      fontWeight: FontWeight.w500,
+                                      letterSpacing: 0.1,
+                                    ),
+                                    dropdownColor: AppTheme.isDarkMode
+                                        ? const Color(0xFF1A1A1A)
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                    onChanged: (String? newValue) {
+                                      if (newValue != null) {
+                                        _selectMonth(newValue);
+                                      }
+                                    },
+                                    items: ['All', ..._months]
+                                        .map<DropdownMenuItem<String>>(
+                                            (String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12),
+                                          child: Text(
+                                            value,
+                                            style: AppTextStyles.bodySmall
+                                                .copyWith(
+                                              color: AppTheme.textPrimary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
                                 ),
                               ),
                             ),
@@ -297,194 +424,114 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
                       ),
                     ],
                   ),
-                ),
 
-                const SizedBox(width: 10), // Reduced from 12
+                  const SizedBox(height: 12),
 
-                // Month Selector with max rounding
-                Expanded(
-                  child: Column(
+                  // Alphabet Selector
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Month',
-                        style: TextStyle(
-                          fontSize: 11, // Reduced
-                          color: Colors.white.withOpacity(0.7),
+                        'Name Starts With',
+                        style: AppTextStyles.labelTertiary.copyWith(
                           fontWeight: FontWeight.w500,
-                          letterSpacing: 0.3, // Reduced
+                          letterSpacing: 0.3,
                         ),
                       ),
-                      const SizedBox(height: 4), // Reduced from 6
-                      Container(
+                      const SizedBox(height: 6),
+                      SizedBox(
                         height: kControlHeight,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(
-                              kRadiusFull), // MAX ROUNDING
-                          border: Border.all(color: kGlassBorder),
-                        ),
-                        child: Center(
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedMonth,
-                              icon: Icon(
-                                Icons.arrow_drop_down,
-                                color: Colors.white.withOpacity(0.7),
-                                size: 20, // Reduced
-                              ),
-                              style: const TextStyle(
-                                fontSize: 13, // Reduced
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.1, // Reduced
-                              ),
-                              dropdownColor: const Color(0xFF1A1A1A),
-                              borderRadius:
-                                  BorderRadius.circular(kRadiusMedium),
-                              onChanged: (String? newValue) {
-                                if (newValue != null) {
-                                  _selectMonth(newValue);
-                                }
-                              },
-                              items: [
-                                'All',
-                                ..._months
-                              ].map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12), // Reduced
-                                    child: Text(
-                                      value,
-                                      style: TextStyle(
-                                        fontSize: 13, // Reduced
-                                        color: Colors.white.withOpacity(0.9),
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _letters.length,
+                          itemBuilder: (context, index) {
+                            final letter = _letters[index];
+                            final isSelected = _selectedLetter == letter;
+
+                            return GestureDetector(
+                              onTap: () => _selectLetter(letter),
+                              child: Container(
+                                width: kControlHeight,
+                                height: kControlHeight,
+                                margin: const EdgeInsets.only(right: 6),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppTheme.primaryColor.withOpacity(0.3)
+                                      : AppTheme.glassColor,
+                                  borderRadius:
+                                      BorderRadius.circular(kRadiusFull),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? AppTheme.primaryColor
+                                        : AppTheme.glassBorder,
+                                    width: isSelected ? 1.5 : 1,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    letter,
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      fontWeight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                      color: isSelected
+                                          ? AppTheme.textPrimary
+                                          : AppTheme.textSecondary,
+                                      letterSpacing: 0.1,
                                     ),
                                   ),
-                                );
-                              }).toList(),
-                            ),
-                          ),
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 12), // Reduced
+                  const SizedBox(height: 10),
 
-            // Alphabet Selector - COMPACT
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'Name Starts With',
-                      style: TextStyle(
-                        fontSize: 11, // Reduced
-                        color: Colors.white.withOpacity(0.7),
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.3, // Reduced
-                      ),
+                  // Active Filter Display
+                  Container(
+                    padding: kChipPadding,
+                    decoration: BoxDecoration(
+                      color: AppTheme.glassColor,
+                      borderRadius: BorderRadius.circular(kRadiusFull),
+                      border: Border.all(color: AppTheme.glassBorder),
                     ),
-                    const Spacer(),
-                  ],
-                ),
-                const SizedBox(height: 6), // Reduced from 8
-                SizedBox(
-                  height: kControlHeight,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _letters.length,
-                    itemBuilder: (context, index) {
-                      final letter = _letters[index];
-                      final isSelected = _selectedLetter == letter;
-
-                      return GestureDetector(
-                        onTap: () => _selectLetter(letter),
-                        child: Container(
-                          width: kControlHeight,
-                          height: kControlHeight,
-                          margin: const EdgeInsets.only(right: 6), // Reduced
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? kPrimaryRed.withOpacity(0.3)
-                                : Colors.white.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(
-                                kRadiusFull), // MAX ROUNDING
-                            border: Border.all(
-                              color: isSelected ? kPrimaryRed : kGlassBorder,
-                              width: isSelected ? 1.5 : 1,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.filter_alt,
+                              size: 14,
+                              color: AppTheme.textTertiary,
                             ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              letter,
-                              style: TextStyle(
-                                fontSize: 13, // Reduced
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? Colors.white
-                                    : Colors.white.withOpacity(0.8),
-                                letterSpacing: 0.1, // Reduced
+                            const SizedBox(width: 8),
+                            Text(
+                              'Showing: $_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • $_selectedLetter' : ''}',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.1,
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 10), // Reduced from 12
-
-            // Active Filter Display with max rounding
-            Container(
-              padding: kChipPadding,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius:
-                    BorderRadius.circular(kRadiusFull), // MAX ROUNDING
-                border: Border.all(color: kGlassBorder),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.filter_alt,
-                        size: 14, // Reduced
-                        color: Colors.white.withOpacity(0.6),
-                      ),
-                      const SizedBox(width: 8), // Reduced
-                      Text(
-                        'Showing: $_selectedMonth $_selectedYear${_selectedLetter != 'All' ? ' • $_selectedLetter' : ''}',
-                        style: TextStyle(
-                          fontSize: 11, // Reduced
-                          color: Colors.white.withOpacity(0.9),
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.1, // Reduced
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
       ),
     );
   }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-// Remove the problematic import for now
+import '../../themes/app_theme.dart';
+import '../../widgets/custom_switch.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -11,25 +12,25 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _isDarkMode = true;
   bool _notificationsEnabled = true;
   bool _biometricEnabled = false;
   bool _emailNotifications = true;
 
-  // 🎯 Color Palettes - Dynamic based on theme
-  Color get _primaryColor => _isDarkMode ? const Color(0xFFDC2626) : const Color(0xFF0AD5FF);
-  Color get _secondaryColor => _isDarkMode ? const Color(0xFF991B1B) : const Color(0xFF0099CC);
-  Color get _glassColor => _isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.05);
-  Color get _glassBorder => _isDarkMode ? Colors.white.withOpacity(0.2) : Colors.black.withOpacity(0.1);
-  Color get _textPrimary => _isDarkMode ? Colors.white : const Color(0xFF1A1A1A);
-  Color get _textSecondary => _isDarkMode ? Colors.white.withOpacity(0.7) : Colors.black.withOpacity(0.6);
-  Color get _textTertiary => _isDarkMode ? Colors.white.withOpacity(0.54) : Colors.black.withOpacity(0.4);
-  Color get _dividerColor => _isDarkMode ? Colors.white.withOpacity(0.1) : Colors.black.withOpacity(0.1);
-  
-  // 🎯 Background Gradients
-  List<Color> get _backgroundGradient => _isDarkMode 
-      ? const [Color(0xFF1A1A1A), Color(0xFF2D1B1B), Color(0xFF1A1A1A)]
-      : const [Color(0xFFF8F9FA), Color(0xFFE3F2FD), Color(0xFFF8F9FA)];
+  @override
+  void initState() {
+    super.initState();
+    AppTheme.addListener(_onThemeChanged);
+  }
+
+  @override
+  void dispose() {
+    AppTheme.removeListener(_onThemeChanged);
+    super.dispose();
+  }
+
+  void _onThemeChanged() {
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: _backgroundGradient,
-          ),
-        ),
+        decoration: AppDecorations.backgroundDecoration(),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -54,19 +49,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Row(
                   children: [
                     Container(
-                      decoration: BoxDecoration(
-                        color: _glassColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: _glassBorder),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 20,
-                          ),
-                        ],
-                      ),
+                      decoration: AppDecorations.glassContainer(borderRadius: 100),
                       child: IconButton(
-                        icon: Icon(Icons.arrow_back, color: _textSecondary),
+                        icon: Icon(Icons.arrow_back, color: AppTheme.textSecondary),
                         onPressed: () {
                           if (Navigator.canPop(context)) {
                             Navigator.pop(context);
@@ -77,11 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     const SizedBox(width: 16),
                     Text(
                       'Settings',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: _textPrimary,
-                      ),
+                      style: AppTextStyles.headerLarge,
                     ),
                   ],
                 ),
@@ -100,10 +81,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             _buildSettingSwitch(
                               icon: Icons.dark_mode_outlined,
                               title: 'Dark Mode',
-                              value: _isDarkMode,
+                              value: AppTheme.isDarkMode,
                               onChanged: (value) {
                                 setState(() {
-                                  _isDarkMode = value;
+                                  AppTheme.isDarkMode = value;
                                 });
                               },
                             ),
@@ -111,7 +92,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             _buildSettingOption(
                               icon: Icons.color_lens_outlined,
                               title: 'Theme Color',
-                              subtitle: _isDarkMode ? 'Red Theme' : 'Blue Theme',
+                              subtitle: AppTheme.isDarkMode ? 'Orange Theme' : 'Blue Theme',
                               onTap: () {
                                 // Theme color selection
                               },
@@ -268,10 +249,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         // App Version
                         Text(
                           'Version 1.0.0 • SXCCE Gate Pass',
-                          style: TextStyle(
-                            color: _textTertiary,
-                            fontSize: 12,
-                          ),
+                          style: AppTextStyles.labelTertiary,
                         ),
                       ],
                     ),
@@ -290,11 +268,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Text(
         title,
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: _textPrimary,
-        ),
+        style: AppTextStyles.headerSmall,
       ),
     );
   }
@@ -302,17 +276,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildGlassCard({required List<Widget> children}) {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: _glassColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _glassBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-          ),
-        ],
-      ),
+      decoration: AppDecorations.glassContainer(borderRadius: 16),
       child: Column(
         children: children,
       ),
@@ -328,29 +292,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListTile(
       leading: Icon(
         icon,
-        color: _textSecondary,
+        color: AppTheme.textSecondary,
         size: 24,
       ),
       title: Text(
         title,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: _textPrimary,
-        ),
+        style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w500),
       ),
       subtitle: subtitle != null
           ? Text(
               subtitle,
-              style: TextStyle(
-                fontSize: 14,
-                color: _textTertiary,
-              ),
+              style: AppTextStyles.labelTertiary,
             )
           : null,
       trailing: Icon(
         Icons.arrow_forward_ios_rounded,
-        color: _textSecondary,
+        color: AppTheme.textSecondary,
         size: 16,
       ),
       onTap: onTap,
@@ -366,114 +323,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ListTile(
       leading: Icon(
         icon,
-        color: _textSecondary,
+        color: AppTheme.textSecondary,
         size: 24,
       ),
       title: Text(
         title,
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: _textPrimary,
-        ),
+        style: AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w500),
       ),
-      trailing: _buildCustomSwitch(value, onChanged),
-    );
-  }
-
-  Widget _buildCustomSwitch(bool value, ValueChanged<bool> onChanged) {
-    return GestureDetector(
-      onTap: () => onChanged(!value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 48,
-        height: 28,
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: value 
-              ? LinearGradient(
-                  colors: [_primaryColor, _secondaryColor],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : LinearGradient(
-                  colors: [
-                    _textTertiary.withOpacity(0.3),
-                    _textTertiary.withOpacity(0.1)
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.3),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-            BoxShadow(
-              color: value ? _primaryColor.withOpacity(0.4) : Colors.black.withOpacity(0.2),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-              spreadRadius: -2,
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 2,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: AnimatedAlign(
-          duration: const Duration(milliseconds: 200),
-          alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: value ? Colors.white : Colors.white.withOpacity(0.95),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(value ? 0.3 : 0.2),
-                  blurRadius: value ? 8 : 6,
-                  offset: const Offset(0, 2),
-                ),
-                BoxShadow(
-                  color: value ? _primaryColor.withOpacity(0.3) : Colors.black.withOpacity(0.1),
-                  blurRadius: 3,
-                  offset: const Offset(0, -1),
-                  spreadRadius: -1,
-                ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.2),
-                  blurRadius: 2,
-                  offset: const Offset(0, -1),
-                ),
-              ],
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: value 
-                    ? [
-                        Colors.white,
-                        Colors.white.withOpacity(0.9),
-                      ]
-                    : [
-                        Colors.white.withOpacity(0.95),
-                        Colors.white.withOpacity(0.85),
-                      ],
-              ),
-            ),
-            child: value
-                ? Icon(
-                    Icons.check,
-                    color: _primaryColor,
-                    size: 12,
-                  )
-                : null,
-          ),
-        ),
+      trailing: CustomSwitch(
+        value: value,
+        onChanged: onChanged,
       ),
     );
   }
@@ -481,7 +340,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildDivider() {
     return Divider(
       height: 1,
-      color: _dividerColor,
+      color: AppTheme.dividerColor,
       indent: 16,
       endIndent: 16,
     );
@@ -490,19 +349,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildLogoutButton() {
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [_primaryColor, _secondaryColor],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: _primaryColor.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: AppDecorations.buttonDecoration(borderRadius: 16),
       child: TextButton(
         onPressed: () {
           _showLogoutDialog();
@@ -516,19 +363,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.logout_rounded,
               color: Colors.white,
               size: 20,
             ),
             const SizedBox(width: 8),
-            const Text(
+            Text(
               'Logout',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+              style: AppTextStyles.buttonLarge,
             ),
           ],
         ),
@@ -543,10 +386,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: _isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _glassBorder),
+          decoration: AppDecorations.glassContainer(
+            borderRadius: 16,
+            color: AppTheme.isDarkMode 
+                ? const Color(0xFF1A1A1A) 
+                : const Color(0xFFF5F5F5),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -556,17 +400,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Icon(
                     Icons.info_outlined,
-                    color: _primaryColor,
+                    color: AppTheme.primaryColor,
                     size: 24,
                   ),
                   const SizedBox(width: 12),
                   Text(
                     'App Information',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: _textPrimary,
-                    ),
+                    style: AppTextStyles.headerSmall,
                   ),
                 ],
               ),
@@ -580,20 +420,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               Container(
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [_primaryColor, _secondaryColor],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: AppDecorations.buttonDecoration(borderRadius: 12),
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     'Close',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTextStyles.buttonMedium,
                   ),
                 ),
               ),
@@ -612,18 +444,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              color: _textSecondary,
-              fontSize: 14,
-            ),
+            style: AppTextStyles.bodySmall,
           ),
           Text(
             value,
-            style: TextStyle(
-              color: _textPrimary,
-              fontWeight: FontWeight.w500,
-              fontSize: 14,
-            ),
+            style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
           ),
         ],
       ),
@@ -637,54 +462,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: Colors.transparent,
         child: Container(
           padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: _isDarkMode ? const Color(0xFF1A1A1A) : const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _glassBorder),
+          decoration: AppDecorations.glassContainer(
+            borderRadius: 16,
+            color: AppTheme.isDarkMode 
+                ? const Color(0xFF1A1A1A) 
+                : const Color(0xFFF5F5F5),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.logout_rounded,
-                color: _primaryColor,
+                color: AppTheme.primaryColor,
                 size: 48,
               ),
               const SizedBox(height: 16),
               Text(
                 'Logout',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: _textPrimary,
-                ),
+                style: AppTextStyles.headerSmall,
               ),
               const SizedBox(height: 8),
               Text(
                 'Are you sure you want to logout from your account?',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: _textSecondary,
-                  fontSize: 14,
-                ),
+                style: AppTextStyles.bodyMedium,
               ),
               const SizedBox(height: 24),
               Row(
                 children: [
                   Expanded(
                     child: Container(
-                      decoration: BoxDecoration(
-                        color: _glassColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: _glassBorder),
-                      ),
+                      decoration: AppDecorations.glassContainer(borderRadius: 12),
                       child: TextButton(
                         onPressed: () => Navigator.pop(context),
                         child: Text(
                           'Cancel',
-                          style: TextStyle(
-                            color: _textSecondary,
-                            fontWeight: FontWeight.w500,
+                          style: AppTextStyles.buttonMedium.copyWith(
+                            color: AppTheme.textSecondary,
                           ),
                         ),
                       ),
@@ -693,23 +507,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [_primaryColor, _secondaryColor],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      decoration: AppDecorations.buttonDecoration(borderRadius: 12),
                       child: TextButton(
                         onPressed: () {
                           Navigator.pop(context);
                           _performLogout();
                         },
-                        child: const Text(
+                        child: Text(
                           'Logout',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: AppTextStyles.buttonMedium,
                         ),
                       ),
                     ),
@@ -734,7 +540,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Logout failed: $e'),
-            backgroundColor: _primaryColor,
+            backgroundColor: AppTheme.primaryColor,
             behavior: SnackBarBehavior.floating,
             duration: const Duration(seconds: 2),
           ),
