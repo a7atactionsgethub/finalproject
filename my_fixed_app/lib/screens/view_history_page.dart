@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/history_filter_widget.dart';
+import '../widgets/gatepass_card_widget.dart';
 import '../themes/app_theme.dart';
 
 class ViewHistoryScreen extends StatefulWidget {
@@ -19,10 +20,31 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
   List<Map<String, dynamic>> _gatepasses = [];
   bool _isLoading = true;
 
+  // ⭐ Add ScrollController and FilterKey
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey<HistoryFilterWidgetState> _filterKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     _loadAllGatepasses();
+    // ⭐ Add scroll listener
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    // ⭐ Clean up scroll listener
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // ⭐ Auto-collapse on scroll
+  void _onScroll() {
+    if (_scrollController.hasClients && _scrollController.offset > 10) {
+      _filterKey.currentState?.collapseFilter();
+    }
   }
 
   Future<void> _loadAllGatepasses() async {
@@ -40,19 +62,16 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
       for (final doc in snapshot.docs) {
         final data = doc.data();
 
-        // Get date from any possible field
         DateTime? date = _parseDateTime(data['createdAt']) ??
             _parseDateTime(data['outTime']) ??
             _parseDateTime(data['date']) ??
             _parseDateTime(data['timestamp']);
 
-        // If no date found, skip this document
         if (date == null) {
           print('⚠️ Skipping document ${doc.id} - no valid date found');
           continue;
         }
 
-        // Get month in 3-letter format for filtering
         final month3Letter = DateFormat('MMM').format(date);
         final monthFull = DateFormat('MMMM').format(date);
 
@@ -87,7 +106,6 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
         _isLoading = false;
       });
 
-      // Print available months and years for debugging
       _printAvailableMonths();
     } catch (e) {
       print('❌ Error: $e');
@@ -135,25 +153,20 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
       final passYear = pass['year'] as int;
       final name = pass['name'] as String;
 
-      // DEBUG: Print each pass for debugging
       if (_gatepasses.length <= 10) {
         print('📝 Checking: $name - $passMonth $passYear');
       }
 
-      // Check if "All" months is selected
       if (_selectedMonth == 'All') {
-        // Only check year if month is "All"
         if (passYear != _selectedYear) {
           continue;
         }
       } else {
-        // Check both month and year
         if (passYear != _selectedYear || passMonth != _selectedMonth) {
           continue;
         }
       }
 
-      // Check letter filter
       if (_selectedLetter != 'All') {
         if (!name
             .trim()
@@ -218,8 +231,9 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Filter Widget
+                // Filter Widget - ⭐ Added key
                 HistoryFilterWidget(
+                  key: _filterKey,
                   onFilterChanged: _onFilterChanged,
                   initialYear: _selectedYear,
                   initialMonth: _selectedMonth,
@@ -258,50 +272,37 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon with gradient background
             Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: AppTheme.buttonGradient,
-                ),
+                gradient: LinearGradient(colors: AppTheme.buttonGradient),
                 shape: BoxShape.circle,
               ),
               padding: const EdgeInsets.all(16),
-              child: Icon(
-                Icons.search_off,
-                size: 48,
-                color: Colors.white,
-              ),
+              child: Icon(Icons.search_off, size: 48, color: Colors.white),
             ),
             const SizedBox(height: 24),
             Text(
               'No Gatepass Data',
-              style: AppTextStyles.headerMedium.copyWith(
-                color: AppTheme.textPrimary,
-              ),
+              style: AppTextStyles.headerMedium
+                  .copyWith(color: AppTheme.textPrimary),
             ),
             const SizedBox(height: 12),
             Text(
               'There are no gatepasses in the system yet.',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppTheme.textSecondary,
-              ),
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 8),
             Text(
               'New gatepasses will appear here once created.',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppTheme.textTertiary,
-              ),
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: AppTheme.textTertiary),
             ),
             const SizedBox(height: 24),
-            // Gradient button
             Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: AppTheme.buttonGradient,
-                ),
+                gradient: LinearGradient(colors: AppTheme.buttonGradient),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ElevatedButton(
@@ -313,14 +314,11 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                      borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text(
-                  'Refresh',
-                  style:
-                      AppTextStyles.buttonMedium.copyWith(color: Colors.white),
-                ),
+                child: Text('Refresh',
+                    style: AppTextStyles.buttonMedium
+                        .copyWith(color: Colors.white)),
               ),
             ),
           ],
@@ -342,27 +340,19 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon with gradient background
             Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: AppTheme.buttonGradient,
-                ),
+                gradient: LinearGradient(colors: AppTheme.buttonGradient),
                 shape: BoxShape.circle,
               ),
               padding: const EdgeInsets.all(16),
-              child: Icon(
-                Icons.filter_alt_off,
-                size: 48,
-                color: Colors.white,
-              ),
+              child: Icon(Icons.filter_alt_off, size: 48, color: Colors.white),
             ),
             const SizedBox(height: 24),
             Text(
               'No Results Found',
-              style: AppTextStyles.headerMedium.copyWith(
-                color: AppTheme.textPrimary,
-              ),
+              style: AppTextStyles.headerMedium
+                  .copyWith(color: AppTheme.textPrimary),
             ),
             const SizedBox(height: 12),
             Text(
@@ -370,18 +360,15 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
                   ? 'No gatepasses found for $_selectedYear'
                   : 'No gatepasses found for ${_getFullMonthName(_selectedMonth)} $_selectedYear',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppTheme.textSecondary,
-              ),
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: 8),
             Text(
               'Try adjusting your filter settings',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppTheme.textTertiary,
-              ),
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: AppTheme.textTertiary),
             ),
-            // Removed the button and extra spacing
           ],
         ),
       ),
@@ -389,7 +376,6 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
   }
 
   Widget _buildGatepassList(List<Map<String, dynamic>> filteredData) {
-    // Group by date
     final Map<String, List<Map<String, dynamic>>> grouped = {};
     for (final pass in filteredData) {
       final dateKey = DateFormat('MMMM dd, yyyy').format(pass['date']);
@@ -408,6 +394,7 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
       });
 
     return ListView(
+      controller: _scrollController, // ⭐ Added controller
       children: dates.map((date) {
         final passes = grouped[date]!;
         return Container(
@@ -416,14 +403,11 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Date header with gradient
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: AppTheme.buttonGradient,
-                  ),
+                  gradient: LinearGradient(colors: AppTheme.buttonGradient),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16),
@@ -453,8 +437,6 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
                   ],
                 ),
               ),
-
-              // Passes list
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -468,171 +450,17 @@ class _ViewHistoryScreenState extends State<ViewHistoryScreen> {
     );
   }
 
+  // ⭐ Now uses the widget!
   Widget _buildPassCard(Map<String, dynamic> pass) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: AppDecorations.glassContainer(
-        borderRadius: 12,
-        color: AppTheme.glassColor,
-        borderColor: AppTheme.glassBorder,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Name and Status
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(Icons.person_outline,
-                        color: AppTheme.textSecondary, size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        pass['name'],
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          color: AppTheme.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(pass['status']).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: _getStatusColor(pass['status']).withOpacity(0.3),
-                  ),
-                ),
-                child: Text(
-                  (pass['status'] as String).toUpperCase(),
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: _getStatusColor(pass['status']),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // Roll and Department
-          Row(
-            children: [
-              Icon(Icons.badge_outlined,
-                  color: AppTheme.textSecondary, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                'Roll: ${pass['roll']}',
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: AppTheme.textSecondary),
-              ),
-              const Spacer(),
-              Icon(Icons.school_outlined,
-                  color: AppTheme.textSecondary, size: 16),
-              const SizedBox(width: 8),
-              Text(
-                pass['department'],
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: AppTheme.textSecondary),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // Reason
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.description_outlined,
-                  color: AppTheme.textSecondary, size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  pass['reason'],
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppTheme.textSecondary),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Times
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.glassColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.glassBorder),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildTimeInfo('OUT', pass['outTime']),
-                Container(
-                  height: 20,
-                  width: 1,
-                  color: AppTheme.glassBorder,
-                ),
-                _buildTimeInfo('IN', pass['inTime']),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return GatepassCardWidget(
+      name: pass['name'],
+      roll: pass['roll'],
+      department: pass['department'],
+      reason: pass['reason'],
+      status: pass['status'],
+      outTime: pass['outTime'],
+      inTime: pass['inTime'],
     );
-  }
-
-  Widget _buildTimeInfo(String label, String time) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppTheme.textTertiary,
-            fontSize: 10,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          time,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'approved':
-        return const Color(0xFF10B981); // Green from common themes
-      case 'pending':
-        return const Color(0xFFF59E0B); // Amber
-      case 'rejected':
-        return const Color(0xFFEF4444); // Red
-      case 'out':
-        return const Color(0xFF3B82F6); // Blue
-      case 'in':
-        return const Color(0xFF8B5CF6); // Violet
-      default:
-        return AppTheme.textSecondary;
-    }
   }
 
   DateTime? _parseDateTime(dynamic value) {

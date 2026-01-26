@@ -31,10 +31,10 @@ class HistoryFilterWidget extends StatefulWidget {
   });
 
   @override
-  _HistoryFilterWidgetState createState() => _HistoryFilterWidgetState();
+  HistoryFilterWidgetState createState() => HistoryFilterWidgetState();
 }
 
-class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
+class HistoryFilterWidgetState extends State<HistoryFilterWidget> {
   late int _selectedYear;
   late String _selectedMonth;
   late String _selectedLetter;
@@ -143,6 +143,15 @@ class _HistoryFilterWidgetState extends State<HistoryFilterWidget> {
     setState(() {
       _isExpanded = !_isExpanded;
     });
+  }
+
+  // ⭐ Make this method public so parent can call it
+  void collapseFilter() {
+    if (_isExpanded) {
+      setState(() {
+        _isExpanded = false;
+      });
+    }
   }
 
   @override

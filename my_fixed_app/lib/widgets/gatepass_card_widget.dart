@@ -25,54 +25,42 @@ class GatepassCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: AppDecorations.glassContainer(
-        borderRadius: 12,
-        color: AppTheme.glassColor,
-        borderColor: AppTheme.glassBorder,
-      ),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(14),
+      decoration: AppDecorations.glassContainer(borderRadius: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Name and Status
+          // Name and Status Badge
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.person_outline,
-                      color: AppTheme.textSecondary,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          color: AppTheme.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+              // Status indicator dot
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: _getStatusColor(status),
+                  shape: BoxShape.circle,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: AppDecorations.statusBadgeContainer(
-                  _getStatusColor(status),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  name,
+                  style: AppTextStyles.headerSmall,
+                  overflow: TextOverflow.ellipsis,
                 ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: AppDecorations.statusBadgeContainer(
+                    _getStatusColor(status)),
                 child: Text(
                   status.toUpperCase(),
-                  style: AppTextStyles.bodySmall.copyWith(
+                  style: AppTextStyles.statusBadge.copyWith(
                     color: _getStatusColor(status),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 10,
                   ),
                 ),
               ),
@@ -81,29 +69,29 @@ class GatepassCardWidget extends StatelessWidget {
 
           const SizedBox(height: 8),
 
-          // Roll and Department
+          // Roll and Department in one row
           Row(
             children: [
               Icon(
                 Icons.badge_outlined,
+                size: 14,
                 color: AppTheme.textSecondary,
-                size: 16,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
-                'Roll: $roll',
+                roll,
                 style: AppTextStyles.bodySmall.copyWith(
                   color: AppTheme.textSecondary,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 12),
               Icon(
                 Icons.school_outlined,
+                size: 14,
                 color: AppTheme.textSecondary,
-                size: 16,
               ),
-              const SizedBox(width: 8),
-              Flexible(
+              const SizedBox(width: 6),
+              Expanded(
                 child: Text(
                   department,
                   style: AppTextStyles.bodySmall.copyWith(
@@ -115,80 +103,131 @@ class GatepassCardWidget extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
-          // Reason
+          // Reason - plain text, no box
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
                 Icons.description_outlined,
+                size: 14,
                 color: AppTheme.textSecondary,
-                size: 16,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Expanded(
-                child: Text(
-                  reason,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Reason',
+                      style: AppTextStyles.labelTertiary,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      reason,
+                      style: AppTextStyles.bodyMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Times
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppTheme.glassColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppTheme.glassBorder),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildTimeInfo('OUT', outTime),
-                Container(
-                  height: 20,
-                  width: 1,
-                  color: AppTheme.glassBorder,
+          // Times Section
+          Row(
+            children: [
+              // Departure
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.logout_rounded,
+                          size: 14,
+                          color: AppTheme.statusOut,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'DEPARTURE',
+                          style: AppTextStyles.labelTertiary.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      outTime,
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-                _buildTimeInfo('IN', inTime),
-              ],
+              ),
+
+              // Expected Return
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.login_rounded,
+                          size: 14,
+                          color: AppTheme.statusApproved,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'EXPECTED RETURN',
+                          style: AppTextStyles.labelTertiary.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      inTime,
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          // Bottom colored indicator line
+          Container(
+            height: 3,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  _getStatusColor(status),
+                  _getStatusColor(status).withOpacity(0.3),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTimeInfo(String label, String time) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppTheme.textTertiary,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          time,
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 
@@ -203,7 +242,7 @@ class GatepassCardWidget extends StatelessWidget {
       case 'out':
         return AppTheme.statusOut;
       case 'in':
-        return const Color(0xFF8B5CF6); // Violet for IN status
+        return AppTheme.statusApproved;
       default:
         return AppTheme.textSecondary;
     }
