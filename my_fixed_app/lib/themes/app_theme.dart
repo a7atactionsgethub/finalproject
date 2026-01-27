@@ -27,7 +27,7 @@ class AppTheme {
 
   // ========== COLOR SYSTEM ==========
   static Color get primaryColor => _isDarkMode
-      ? const Color(0xFFDC5126) // Vibrant warm orange
+      ? const Color.fromARGB(255, 248, 40, 3) // Vibrant warm orange
       : const Color(0xFF2563EB); // Royal blue
       
   static Color get secondaryColor => _isDarkMode
@@ -35,7 +35,7 @@ class AppTheme {
       : const Color(0xFF1E40AF); // Deep blue
       
   static Color get accentColor => _isDarkMode
-      ? const Color(0xFFFF6B35) // Bright coral
+      ? const Color.fromARGB(255, 253, 124, 77) // Bright coral
       : const Color(0xFF3B82F6); // Bright blue
       
   static Color get glassColor =>
