@@ -1,4 +1,3 @@
-// universal_signin.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -29,7 +28,7 @@ class _UniversalSignInState extends State<UniversalSignIn> {
 
   static const String _studentEmailDomain = 'students.mygate';
 
-  // Glassmorphism Colors (same as AddStudentPage)
+  // Glassmorphism Colors
   final Color _primaryRed = const Color(0xFFDC2626);
   final Color _darkRed = const Color(0xFF991B1B);
   final Color _glassWhite = Colors.white.withOpacity(0.1);
@@ -114,6 +113,29 @@ class _UniversalSignInState extends State<UniversalSignIn> {
           break;
         case 'security':
           context.go('/qr-scanner');
+          break;
+        case 'parent':
+          // Fetch parent document
+          final parentDoc = await FirebaseFirestore.instance
+              .collection('parents')
+              .doc(user.uid)
+              .get();
+
+          if (!parentDoc.exists) {
+            _handleFailure('Parent record not found. Contact admin.');
+            return;
+          }
+
+          final parentData = parentDoc.data()!;
+          final parentName = parentData['name'] ?? 'Parent';
+          final wardStudentId = parentData['wardStudentId'] ?? '';
+
+          // Navigate to parent dashboard
+          context.go('/parent-dashboard', extra: {
+            'parentName': parentName,
+            'parentId': user.uid,
+            'wardStudentId': wardStudentId,
+          });
           break;
         case 'student':
           DocumentSnapshot<Map<String, dynamic>>? studentDoc;
@@ -229,7 +251,7 @@ class _UniversalSignInState extends State<UniversalSignIn> {
     super.dispose();
   }
 
-  // Custom text field builder matching AddStudentPage style
+  // Custom text field builder
   Widget _buildTextField(
     TextEditingController controller,
     String label, {
@@ -303,6 +325,9 @@ class _UniversalSignInState extends State<UniversalSignIn> {
         : 0;
 
     final isStudent = _selectedRole.toLowerCase() == 'student';
+    final isParent = _selectedRole.toLowerCase() == 'parent';
+    final isAdmin = _selectedRole.toLowerCase() == 'admin';
+    final isSecurity = _selectedRole.toLowerCase() == 'security';
 
     return Scaffold(
       body: Container(
@@ -358,7 +383,7 @@ class _UniversalSignInState extends State<UniversalSignIn> {
                       ),
                       const SizedBox(height: 32),
 
-                      // Role Dropdown (consistent with AddStudentPage)
+                      // Role Dropdown
                       Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
                         child: Container(
@@ -376,14 +401,20 @@ class _UniversalSignInState extends State<UniversalSignIn> {
                             value: _selectedRole,
                             dropdownColor: const Color(0xFF2A1A1A),
                             style: const TextStyle(color: Colors.white),
-                            items: ['Student', 'Admin', 'Security']
+                            items: ['Student', 'Parent', 'Admin', 'Security']
                                 .map<DropdownMenuItem<String>>(
                                   (String role) => DropdownMenuItem<String>(
                                     value: role,
-                                    child: Text(
-                                      role,
-                                      style:
-                                          const TextStyle(color: Colors.white),
+                                    child: Row(
+                                      children: [
+                                        _getRoleIcon(role),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          role,
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 )
@@ -392,13 +423,15 @@ class _UniversalSignInState extends State<UniversalSignIn> {
                               setState(() {
                                 _selectedRole = newValue!;
                                 _errorMessage = '';
+                                _usernameController.text =
+                                    ''; // Clear field when role changes
                               });
                             },
                             decoration: InputDecoration(
                               labelText: 'Select Role',
                               labelStyle:
                                   const TextStyle(color: Colors.white70),
-                              prefixIcon: Icon(Icons.person_outline,
+                              prefixIcon: Icon(_getRoleIcon(_selectedRole).icon,
                                   color: Colors.white70),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16),
@@ -430,24 +463,21 @@ class _UniversalSignInState extends State<UniversalSignIn> {
                         ),
                       ),
 
-                      // Username/Roll Number Field
+                      // Username/Roll Number/Email Field
                       _buildTextField(
                         _usernameController,
-                        isStudent ? 'Roll Number' : 'Email',
+                        _getUsernameLabel(_selectedRole),
                         keyboardType: isStudent
                             ? TextInputType.text
                             : TextInputType.emailAddress,
                         prefixIcon: Icon(
-                          isStudent
-                              ? Icons.badge_outlined
-                              : Icons.email_outlined,
+                          _getFieldIcon(_selectedRole),
                           color: Colors.white70,
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return isStudent
-                                ? 'Roll number is required'
-                                : 'Email is required';
+                            return _getUsernameLabel(_selectedRole) +
+                                ' is required';
                           }
                           if (!isStudent && !value.contains('@')) {
                             return 'Enter a valid email address';
@@ -484,6 +514,20 @@ class _UniversalSignInState extends State<UniversalSignIn> {
                         },
                       ),
 
+                      // Helper Text
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Text(
+                          _getHelperText(_selectedRole),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+
                       if (_blockTime != null)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 16),
@@ -507,7 +551,7 @@ class _UniversalSignInState extends State<UniversalSignIn> {
 
                       const SizedBox(height: 8),
 
-                      // Login Button (matching AddStudentPage style)
+                      // Login Button
                       Container(
                         width: double.infinity,
                         height: 56,
@@ -566,11 +610,14 @@ class _UniversalSignInState extends State<UniversalSignIn> {
                               Icon(Icons.error_outline,
                                   color: _primaryRed, size: 16),
                               const SizedBox(width: 8),
-                              Text(
-                                _errorMessage,
-                                style: TextStyle(
-                                  color: _primaryRed,
-                                  fontSize: 14,
+                              Flexible(
+                                child: Text(
+                                  _errorMessage,
+                                  style: TextStyle(
+                                    color: _primaryRed,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ],
@@ -606,5 +653,68 @@ class _UniversalSignInState extends State<UniversalSignIn> {
         ),
       ),
     );
+  }
+
+  // Helper methods for UI
+  String _getUsernameLabel(String role) {
+    switch (role.toLowerCase()) {
+      case 'student':
+        return 'Roll Number';
+      case 'parent':
+        return 'Parent Email';
+      case 'admin':
+        return 'Admin Email';
+      case 'security':
+        return 'Security Email';
+      default:
+        return 'Email';
+    }
+  }
+
+  IconData _getFieldIcon(String role) {
+    switch (role.toLowerCase()) {
+      case 'student':
+        return Icons.badge_outlined;
+      case 'parent':
+        return Icons.family_restroom_outlined;
+      case 'admin':
+        return Icons.admin_panel_settings_outlined;
+      case 'security':
+        return Icons.security_outlined;
+      default:
+        return Icons.email_outlined;
+    }
+  }
+
+  Icon _getRoleIcon(String role) {
+    switch (role.toLowerCase()) {
+      case 'student':
+        return const Icon(Icons.school_outlined, color: Colors.white70);
+      case 'parent':
+        return const Icon(Icons.family_restroom_outlined,
+            color: Colors.white70);
+      case 'admin':
+        return const Icon(Icons.admin_panel_settings_outlined,
+            color: Colors.white70);
+      case 'security':
+        return const Icon(Icons.security_outlined, color: Colors.white70);
+      default:
+        return const Icon(Icons.person_outline, color: Colors.white70);
+    }
+  }
+
+  String _getHelperText(String role) {
+    switch (role.toLowerCase()) {
+      case 'student':
+        return 'Enter your roll number (e.g., 21BCE1234). Password will be your default or custom password.';
+      case 'parent':
+        return 'Use the email address registered for parent account. Contact admin if you don\'t have an account.';
+      case 'admin':
+        return 'Use your admin email address and password to access the admin panel.';
+      case 'security':
+        return 'Security personnel: Use your security email to verify and scan QR codes.';
+      default:
+        return 'Enter your credentials to login.';
+    }
   }
 }

@@ -50,15 +50,22 @@ class _GatePassRequestState extends State<GatePassRequest> {
       final studentsCol = FirebaseFirestore.instance.collection('students');
       DocumentSnapshot<Map<String, dynamic>>? studentDoc;
 
-      final byUid = await studentsCol.where('uid', isEqualTo: user.uid).limit(1).get();
+      final byUid =
+          await studentsCol.where('uid', isEqualTo: user.uid).limit(1).get();
       if (byUid.docs.isNotEmpty) {
         studentDoc = byUid.docs.first;
       } else {
-        final byUsername = await studentsCol.where('username', isEqualTo: user.email).limit(1).get();
+        final byUsername = await studentsCol
+            .where('username', isEqualTo: user.email)
+            .limit(1)
+            .get();
         if (byUsername.docs.isNotEmpty) {
           studentDoc = byUsername.docs.first;
         } else {
-          final byAuthEmail = await studentsCol.where('authEmail', isEqualTo: user.email).limit(1).get();
+          final byAuthEmail = await studentsCol
+              .where('authEmail', isEqualTo: user.email)
+              .limit(1)
+              .get();
           if (byAuthEmail.docs.isNotEmpty) studentDoc = byAuthEmail.docs.first;
         }
       }
@@ -66,8 +73,10 @@ class _GatePassRequestState extends State<GatePassRequest> {
       if (studentDoc != null) {
         final data = studentDoc.data()!;
         nameController.text = (data['name'] ?? '').toString();
-        rollController.text = (data['rollNumber'] ?? data['username'] ?? '').toString();
-        deptController.text = (data['department'] ?? data['dept'] ?? '').toString();
+        rollController.text =
+            (data['rollNumber'] ?? data['username'] ?? '').toString();
+        deptController.text =
+            (data['department'] ?? data['dept'] ?? '').toString();
       }
     } catch (e) {
       if (mounted) {
@@ -93,7 +102,8 @@ class _GatePassRequestState extends State<GatePassRequest> {
     setState(() => _isSubmitting = true);
 
     try {
-      final docRef = FirebaseFirestore.instance.collection('gatepass_requests').doc();
+      final docRef =
+          FirebaseFirestore.instance.collection('gatepass_requests').doc();
 
       final data = {
         'uid': uid ?? '',
@@ -168,7 +178,10 @@ class _GatePassRequestState extends State<GatePassRequest> {
         readOnly: readOnly,
         style: TextStyle(color: _textWhite, fontSize: 16),
         cursorColor: _primaryRed,
-        validator: readOnly ? null : (v) => v == null || v.trim().isEmpty ? '$label is required' : null,
+        validator: readOnly
+            ? null
+            : (v) =>
+                v == null || v.trim().isEmpty ? '$label is required' : null,
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: _textWhite70),
@@ -179,7 +192,8 @@ class _GatePassRequestState extends State<GatePassRequest> {
           errorBorder: InputBorder.none,
           focusedErrorBorder: InputBorder.none,
           errorStyle: TextStyle(color: Colors.red.shade200),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
       ),
     );
@@ -243,7 +257,9 @@ class _GatePassRequestState extends State<GatePassRequest> {
               onPrimary: Colors.white,
               surface: const Color(0xFF1A1A1A),
               onSurface: Colors.white,
-            ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF2D1B1B)),
+            ),
+            dialogTheme:
+                DialogThemeData(backgroundColor: const Color(0xFF2D1B1B)),
           ),
           child: child!,
         );
@@ -262,7 +278,9 @@ class _GatePassRequestState extends State<GatePassRequest> {
               onPrimary: Colors.white,
               surface: const Color(0xFF1A1A1A),
               onSurface: Colors.white,
-            ), dialogTheme: DialogThemeData(backgroundColor: const Color(0xFF2D1B1B)),
+            ),
+            dialogTheme:
+                DialogThemeData(backgroundColor: const Color(0xFF2D1B1B)),
           ),
           child: child!,
         );
@@ -384,16 +402,25 @@ class _GatePassRequestState extends State<GatePassRequest> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          _buildFormField('Full Name', Icons.person_outline, nameController, readOnly: true),
-                          _buildFormField('Roll Number', Icons.numbers_outlined, rollController, readOnly: true),
-                          _buildFormField('Department', Icons.school_outlined, deptController, readOnly: true),
-                          _buildFormField('Reason for Leave', Icons.note_outlined, reasonController, maxLines: 4),
+                          _buildFormField(
+                              'Full Name', Icons.person_outline, nameController,
+                              readOnly: true),
+                          _buildFormField('Roll Number', Icons.numbers_outlined,
+                              rollController,
+                              readOnly: true),
+                          _buildFormField('Department', Icons.school_outlined,
+                              deptController,
+                              readOnly: true),
+                          _buildFormField('Reason for Leave',
+                              Icons.note_outlined, reasonController,
+                              maxLines: 4),
                           _buildDateTimeField(
                             label: 'Departure Date & Time',
                             value: _departureDateTime,
                             onTap: () async {
                               final picked = await _pickDateTime(context);
-                              if (picked != null) setState(() => _departureDateTime = picked);
+                              if (picked != null)
+                                setState(() => _departureDateTime = picked);
                             },
                           ),
                           _buildDateTimeField(
@@ -401,7 +428,8 @@ class _GatePassRequestState extends State<GatePassRequest> {
                             value: _returnDateTime,
                             onTap: () async {
                               final picked = await _pickDateTime(context);
-                              if (picked != null) setState(() => _returnDateTime = picked);
+                              if (picked != null)
+                                setState(() => _returnDateTime = picked);
                             },
                           ),
                           const SizedBox(height: 32),
@@ -446,7 +474,8 @@ class _GatePassRequestState extends State<GatePassRequest> {
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(_textWhite),
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(_textWhite),
                             ),
                           )
                         : Text(

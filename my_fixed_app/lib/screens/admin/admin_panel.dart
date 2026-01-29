@@ -223,7 +223,8 @@ class _AdminPanelState extends State<AdminPanel> {
     }
   }
 
-  Widget _buildStatBox(String label, int value, IconData icon, List<Color> colors,
+  Widget _buildStatBox(
+      String label, int value, IconData icon, List<Color> colors,
       {VoidCallback? onTap}) {
     return GestureDetector(
       onTap: onTap,
@@ -300,7 +301,8 @@ class _AdminPanelState extends State<AdminPanel> {
       ),
       child: ListTile(
         onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -323,7 +325,7 @@ class _AdminPanelState extends State<AdminPanel> {
             color: _glassWhite,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(Icons.arrow_forward_ios_rounded, 
+          child: Icon(Icons.arrow_forward_ios_rounded,
               color: Colors.white.withOpacity(0.7), size: 16),
         ),
       ),
@@ -422,7 +424,8 @@ class _AdminPanelState extends State<AdminPanel> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         s['name'],
@@ -530,7 +533,7 @@ class _AdminPanelState extends State<AdminPanel> {
                             border: Border.all(color: _glassBorder),
                           ),
                           child: IconButton(
-                            icon: Icon(Icons.arrow_back, 
+                            icon: Icon(Icons.arrow_back,
                                 color: Colors.white.withOpacity(0.7)),
                             onPressed: () => context.pop(),
                           ),
@@ -582,7 +585,7 @@ class _AdminPanelState extends State<AdminPanel> {
                             border: Border.all(color: _glassBorder),
                           ),
                           child: IconButton(
-                            icon: Icon(Icons.settings_outlined, 
+                            icon: Icon(Icons.settings_outlined,
                                 color: Colors.white.withOpacity(0.7)),
                             onPressed: () => context.go('/settings'),
                           ),
@@ -644,7 +647,9 @@ class _AdminPanelState extends State<AdminPanel> {
                                             Icons.exit_to_app_outlined,
                                             [_primaryRed, _darkRed],
                                             onTap: () => _showStudentListDialog(
-                                                context, 'Students Outside', outStudentDetails),
+                                                context,
+                                                'Students Outside',
+                                                outStudentDetails),
                                           ),
                                           _buildStatBox(
                                             "Current Strength",
@@ -652,7 +657,9 @@ class _AdminPanelState extends State<AdminPanel> {
                                             Icons.home_outlined,
                                             [_primaryGreen, _darkGreen],
                                             onTap: () => _showStudentListDialog(
-                                                context, 'Students in Hostel', inStudentDetails),
+                                                context,
+                                                'Students in Hostel',
+                                                inStudentDetails),
                                           ),
                                         ],
                                       ),
@@ -677,7 +684,8 @@ class _AdminPanelState extends State<AdminPanel> {
                                     ],
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       const Text(
                                         "Quick Actions",
@@ -701,7 +709,8 @@ class _AdminPanelState extends State<AdminPanel> {
                                       _buildMenuItem(
                                         "Gate Pass Requests",
                                         Icons.assignment_outlined,
-                                        () => context.push('/requested-gate-pass'),
+                                        () => context
+                                            .push('/requested-gate-pass'),
                                       ),
                                     ],
                                   ),
